@@ -1,0 +1,278 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Thyma design system — "clinical indigo".
+ * Indigo carries every action and active state; magenta/blush survive only in
+ * the brand gradient and the wordmark. Chrome (borders, washes, shadows) is
+ * neutral slate so the product reads clinical, not candy.
+ *
+ * Naming note: the blush-* and cream tokens kept their names through the
+ * recolor to avoid churning class names across the app — their values are now
+ * the neutral indigo washes. Archivo display, IBM Plex Sans body, IBM Plex
+ * Mono strictly for data (labs, times, IDs). All colors are oklch tokens.
+ */
+
+@theme inline {
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --radius-sm: calc(var(--radius) - 3px);
+  --radius-md: calc(var(--radius) - 1px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-action: var(--action);
+  --color-action-deep: var(--action-deep);
+  --color-plum: var(--plum);
+  --color-plum-deep: var(--plum-deep);
+  --color-rose: var(--rose);
+  --color-rose-deep: var(--rose-deep);
+  --color-indigo: var(--indigo);
+  --color-blush: var(--blush);
+  --color-blush-soft: var(--blush-soft);
+  --color-blush-wash: var(--blush-wash);
+  --color-cream: var(--cream);
+  --color-canvas: var(--canvas);
+  --color-paper: var(--paper);
+  --color-mist: var(--mist);
+  --color-slate: var(--slate);
+  --color-emergent: var(--emergent);
+  --color-urgent: var(--urgent);
+  --color-routine: var(--routine);
+  --color-hairline: var(--hairline);
+  --color-hairline-dark: var(--hairline-dark);
+
+  --shadow-panel: 0 1px 2px oklch(0.32 0.05 265 / 0.05), 0 8px 24px oklch(0.32 0.05 265 / 0.07);
+  --shadow-lift: 0 2px 4px oklch(0.32 0.05 265 / 0.08), 0 18px 40px oklch(0.32 0.05 265 / 0.14);
+  --gradient-brand: linear-gradient(120deg, var(--indigo) 0%, oklch(0.5605 0.2148 320) 48%, var(--rose) 82%, var(--blush) 100%);
+}
+
+:root {
+  --radius: 0.375rem;
+
+  /* Deck palette: #5D6AFF primary blue, #3440B0 deep blue, #C84C7E magenta,
+     #FDB2DF soft pink, #FFFFFF white, #E7E6E6 light gray, #44546A slate,
+     #5F5F57 neutral gray. */
+  --ink: oklch(0.4355 0.1764 272.03); /* #3440B0 deep blue */
+  --ink-2: oklch(0.3866 0.1572 272.12);
+  --action: oklch(0.4355 0.1764 272.03); /* primary actions — deep indigo */
+  --action-deep: oklch(0.3866 0.1572 272.12); /* pressed */
+  --plum: oklch(0.5992 0.2186 273.96); /* #5D6AFF primary blue */
+  --plum-deep: oklch(0.4355 0.1764 272.03);
+  --indigo: oklch(0.5992 0.2186 273.96);
+  --rose: oklch(0.5959 0.1645 358.3); /* #C84C7E magenta — gradient + wordmark only */
+  --rose-deep: oklch(0.4869 0.1503 357.5);
+  --blush: oklch(0.8474 0.1036 342.83); /* #FDB2DF soft pink — gradient endpoint */
+  --blush-soft: oklch(0.9314 0.0272 274.5); /* periwinkle hover / pill bg */
+  --blush-wash: oklch(0.9688 0.0119 274.9); /* faint indigo section wash */
+  --cream: oklch(0.9769 0.0055 271.4); /* cool near-white */
+  --canvas: oklch(0.9581 0.0072 271); /* portal page background — panels sit white on this */
+  --paper: oklch(1 0 0); /* #FFFFFF */
+  --mist: oklch(0.9257 0.0011 17.18); /* #E7E6E6 light gray */
+  --slate: oklch(0.4413 0.0416 256.44); /* #44546A body text */
+  --emergent: oklch(0.5088 0.1632 26.24);
+  --urgent: oklch(0.6276 0.1255 69.96);
+  --routine: oklch(0.5322 0.0733 165.29);
+  --hairline: oklch(0.4413 0.0416 256.44 / 0.22);
+  --hairline-dark: oklch(1 0 0 / 0.16);
+
+  --background: var(--paper);
+  --foreground: oklch(0.4413 0.0416 256.44);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--slate);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--slate);
+  --primary: var(--plum);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: var(--blush-soft);
+  --secondary-foreground: var(--ink);
+  --accent: var(--plum);
+  --accent-foreground: oklch(1 0 0);
+  --muted: var(--blush-wash);
+  --muted-foreground: oklch(0.5 0.028 259); /* muted slate */
+  --destructive: var(--emergent);
+  --destructive-foreground: oklch(1 0 0);
+  --border: var(--hairline);
+  --input: var(--hairline);
+  --ring: var(--plum);
+}
+
+.dark {
+  --ink: oklch(0.2892 0.1128 272.5);
+  --ink-2: oklch(0.2464 0.0942 272.5);
+  --action: oklch(0.5992 0.2186 273.96);
+  --action-deep: oklch(0.5205 0.2 273.5);
+  --cream: oklch(0.9769 0.0055 271.4);
+  --canvas: oklch(0.1902 0.0611 272.6);
+  --paper: oklch(0.2141 0.0692 272.6);
+  --mist: oklch(0.2892 0.1128 272.5);
+  --blush-soft: oklch(0.3324 0.0866 274);
+  --blush-wash: oklch(0.2635 0.0748 273);
+  --slate: oklch(0.9 0.012 275);
+  --hairline: oklch(1 0 0 / 0.14);
+  --hairline-dark: oklch(1 0 0 / 0.14);
+
+  --background: var(--paper);
+  --foreground: oklch(0.96 0.008 275);
+  --card: oklch(0.2588 0.0842 272.6);
+  --card-foreground: oklch(0.96 0.008 275);
+  --popover: var(--card);
+  --popover-foreground: oklch(0.96 0.008 275);
+  --primary: var(--plum);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: var(--blush-soft);
+  --secondary-foreground: oklch(0.96 0.008 275);
+  --muted: oklch(1 0 0 / 0.07);
+  --muted-foreground: oklch(0.78 0.03 273);
+  --border: var(--hairline);
+  --input: var(--hairline);
+  --ring: var(--plum);
+}
+
+
+
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-plum);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--color-blush-soft);
+    color: var(--color-ink);
+  }
+}
+
+/* Section label. Quiet slate sans — mono is reserved for data values. */
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: oklch(0.54 0.032 261);
+}
+
+@utility panel {
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+@utility panel-accent {
+  background: var(--color-blush-wash);
+  border: 1px solid var(--color-blush);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+@utility wash-pink {
+  background: var(--color-blush-wash);
+}
+
+@utility pill-pink {
+  background: var(--color-blush-soft);
+  color: var(--color-rose-deep);
+  border-radius: 999px;
+}
+
+@utility gradient-brand {
+  background-image: var(--gradient-brand);
+}
+
+@utility rule-line {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--color-rose) 0 6px,
+    transparent 6px 12px
+  );
+  opacity: 0.55;
+}
+
+
+@keyframes thyma-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes thyma-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    animation: thyma-rise 0.28s ease-out;
+  }
+  .pulse-dot {
+    animation: thyma-pulse 1.8s ease-in-out infinite;
+  }
+}
