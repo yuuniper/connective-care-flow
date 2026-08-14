@@ -1,10 +1,28 @@
 import { useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { PhoneCall, UserRound, Users } from "lucide-react";
-import { PanelHeader } from "@/components/thyma/panel";
-import { Portrait } from "@/components/thyma/portrait";
-import { Wordmark } from "@/components/thyma/site-chrome";
-import type { PersonKey } from "@/data/people";
+import { createFileRoute } from "@tanstack/react-router";
+import { UserRound } from "lucide-react";
+import { ActionBar, ConsoleSidebar, type ConsoleSection } from "@/components/console/ehr-chrome";
+import { DataTable, type Column } from "@/components/console/data-table";
+import { PatientBanner } from "@/components/console/patient-banner";
+import {
+  ChartTab,
+  ChartTabList,
+  ChartTabPanel,
+  ChartTabs,
+  Chip,
+  Field,
+  LabFlagChip,
+  SectionHeader,
+} from "@/components/console/primitives";
+import {
+  fmtDateTime,
+  panel,
+  panelStats,
+  type Encounter,
+  type Lab,
+  type Med,
+  type PanelPatient,
+} from "@/data/console-panel";
 
 export const Route = createFileRoute("/console")({
   head: () => ({
@@ -28,265 +46,380 @@ export const Route = createFileRoute("/console")({
   component: Console,
 });
 
-const roster: {
-  name: string;
-  photo: PersonKey;
-  meta: string;
-  risk: number;
-  ed: number;
-  open: string | null;
-  drivers: string[];
-  live: boolean;
-}[] = [
+/* -------------------------------------------------------------- worklist */
+
+const worklistColumns: Column<PanelPatient>[] = [
   {
-    name: "Maria Delgado",
-    photo: "maria",
-    meta: "34 · F · SLE + class III nephritis",
-    risk: 87,
-    ed: 2,
-    open: "7:02 PM",
-    drivers: ["2 ED visits", "3 steroid bursts", "Nephritis", "PA lapse 6wk"],
-    live: true,
+    key: "patient",
+    header: "Patient",
+    sortable: true,
+    sortValue: (r) => r.last,
+    render: (r) => (
+      <>
+        <div className="truncate text-[12.5px] font-semibold text-slate">
+          {r.last}, {r.first}
+        </div>
+        <div className="truncate text-[11.5px] text-muted-foreground">
+          {r.age}
+          {r.sex} · {r.dx}
+        </div>
+      </>
+    ),
   },
   {
-    name: "Alicia Brooks",
-    photo: "alicia",
-    meta: "41 · F · SLE, prednisone 40 mg taper",
-    risk: 91,
-    ed: 3,
-    open: "2:14 AM",
-    drivers: ["3 ED visits", "Steroid 40mg", "Immunosuppressed"],
-    live: true,
+    key: "risk",
+    header: "ED risk",
+    align: "right",
+    sortable: true,
+    sortValue: (r) => r.risk,
+    className: "w-[92px]",
+    render: (r) => (
+      <span className="flex items-center justify-end gap-1.5">
+        <span className="font-semibold">{r.risk}</span>
+        {/* The score earns a flag, not a filled bar: a progress bar spends a
+            whole column on a number that is already right there. */}
+        {r.risk >= 85 ? (
+          <Chip severity="critical">HIGH</Chip>
+        ) : r.risk >= 55 ? (
+          <Chip severity="abnormal">MOD</Chip>
+        ) : null}
+      </span>
+    ),
   },
   {
-    name: "Dennis Ochoa",
-    photo: "dennis",
-    meta: "66 · M · RA, erosive",
-    risk: 58,
-    ed: 1,
-    open: null,
-    drivers: ["Biologic gap 74d"],
-    live: false,
+    key: "ed",
+    header: "ED 12mo",
+    align: "right",
+    sortable: true,
+    sortValue: (r) => r.ed,
+    className: "w-[74px]",
+    render: (r) => r.ed,
   },
   {
-    name: "Priya Raman",
-    photo: "priya",
-    meta: "29 · F · SLE",
-    risk: 64,
-    ed: 1,
-    open: null,
-    drivers: ["Missed infusion"],
-    live: false,
+    key: "contact",
+    header: "Last contact",
+    sortable: true,
+    sortValue: (r) => r.openedAt ?? "",
+    className: "w-[150px]",
+    render: (r) =>
+      r.openedAt ? (
+        <span className="font-mono text-[11.5px] font-semibold text-emergent tabular-nums">
+          {fmtDateTime(r.openedAt)}
+        </span>
+      ) : (
+        <span className="text-muted-foreground">Routine</span>
+      ),
   },
   {
-    name: "Karen Liu",
-    photo: "karen",
-    meta: "47 · F · SLE",
-    risk: 41,
-    ed: 0,
-    open: null,
-    drivers: [],
-    live: false,
+    key: "drivers",
+    header: "Risk drivers",
+    className: "hidden 2xl:table-cell",
+    render: (r) => (
+      <span className="flex flex-wrap gap-1">
+        {r.drivers.map((d) => (
+          <Chip key={d}>{d}</Chip>
+        ))}
+      </span>
+    ),
   },
 ];
 
-function Console() {
-  const [sel, setSel] = useState<string | null>("Maria Delgado");
-  const row = roster.find((r) => r.name === sel) ?? null;
+/* ------------------------------------------------------------ chart tabs */
+
+const labColumns: Column<Lab>[] = [
+  { key: "name", header: "Test", sortable: true, sortValue: (l) => l.name, render: (l) => l.name },
+  {
+    key: "value",
+    header: "Value",
+    align: "right",
+    className: "w-[86px]",
+    render: (l) => (
+      <span className="flex items-center justify-end gap-1.5">
+        <span className={l.flag ? "font-semibold" : ""}>{l.value}</span>
+        <LabFlagChip flag={l.flag} />
+      </span>
+    ),
+  },
+  {
+    key: "unit",
+    header: "Units",
+    className: "w-[70px] text-muted-foreground",
+    render: (l) => l.unit,
+  },
+  {
+    key: "ref",
+    header: "Reference",
+    align: "right",
+    className: "w-[92px]",
+    // Item 6: the range sits beside the value, so "0.8" can be judged in place
+    // rather than remembered against a legend somewhere else.
+    render: (l) => <span className="text-muted-foreground">{l.ref}</span>,
+  },
+  {
+    key: "drawn",
+    header: "Collected",
+    align: "right",
+    sortable: true,
+    sortValue: (l) => l.drawn,
+    className: "w-[130px]",
+    render: (l) => <span className="text-muted-foreground">{fmtDateTime(l.drawn)}</span>,
+  },
+];
+
+const medColumns: Column<Med>[] = [
+  {
+    key: "name",
+    header: "Medication",
+    sortable: true,
+    sortValue: (m) => m.name,
+    render: (m) => <span className="font-medium">{m.name}</span>,
+  },
+  { key: "dose", header: "Dose", align: "right", className: "w-[80px]", render: (m) => m.dose },
+  { key: "sig", header: "Sig", className: "w-[130px]", render: (m) => m.sig },
+  {
+    key: "started",
+    header: "Started",
+    align: "right",
+    sortable: true,
+    sortValue: (m) => m.started,
+    className: "w-[100px]",
+    render: (m) => <span className="text-muted-foreground">{fmtDateTime(m.started)}</span>,
+  },
+  {
+    key: "alert",
+    header: "Alert",
+    className: "w-[220px]",
+    render: (m) => (m.alert ? <Chip severity="abnormal">{m.alert}</Chip> : null),
+  },
+];
+
+const encounterColumns: Column<Encounter>[] = [
+  {
+    key: "when",
+    header: "Date / time",
+    sortable: true,
+    sortValue: (e) => e.when,
+    className: "w-[136px]",
+    render: (e) => (
+      <span className="font-mono text-[11.5px] tabular-nums">{fmtDateTime(e.when)}</span>
+    ),
+  },
+  {
+    key: "type",
+    header: "Type",
+    sortable: true,
+    sortValue: (e) => e.type,
+    className: "w-[130px]",
+    render: (e) => (
+      <span className="flex items-center gap-1.5">
+        <span className="font-medium">{e.type}</span>
+        {e.acute && <Chip severity="critical">ACUTE</Chip>}
+      </span>
+    ),
+  },
+  { key: "where", header: "Location", className: "w-[140px]", render: (e) => e.where },
+  {
+    key: "clinician",
+    header: "Clinician",
+    className: "w-[120px]",
+    render: (e) => <span className="text-muted-foreground">{e.clinician}</span>,
+  },
+  { key: "disposition", header: "Disposition", render: (e) => e.disposition },
+];
+
+function Chart({ p }: { p: PanelPatient }) {
+  const abnormal = p.labs.filter((l) => l.flag).length;
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <header className="sticky top-0 z-40 border-b border-hairline bg-paper/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3.5">
-          <Link to="/">
-            <Wordmark />
-          </Link>
-          <span className="hidden text-[13.5px] text-muted-foreground sm:block">
-            Clinical console · Meridian Health Plan
-          </span>
-          <div className="ml-auto flex items-center gap-4">
-            {/* The pulsing alert dot stays: unlike the member portal, this
-                surface exists so a coordinator notices an open contact. */}
-            <span className="inline-flex items-center gap-2 rounded-full bg-emergent/12 px-3 py-1 text-[13.5px] font-medium text-emergent">
-              <span className="pulse-dot size-2 rounded-full bg-emergent" /> 2 open contacts
-            </span>
-            <Link
-              to="/app"
-              className="rounded-full bg-action px-4 py-2 text-[14px] font-medium text-cream transition-colors hover:bg-action-deep"
-            >
-              Member view
-            </Link>
-          </div>
-        </div>
-      </header>
+    <ChartTabs defaultValue="snapshot">
+      <ChartTabList>
+        <ChartTab value="snapshot">Snapshot</ChartTab>
+        <ChartTab value="labs" count={p.labs.length}>
+          Labs
+        </ChartTab>
+        <ChartTab value="meds" count={p.meds.length}>
+          Meds
+        </ChartTab>
+        <ChartTab value="encounters" count={p.encounters.length}>
+          Encounters
+        </ChartTab>
+        <ChartTab value="notes" count={p.notes.length}>
+          Notes
+        </ChartTab>
+      </ChartTabList>
 
-      <div className="mx-auto max-w-[1240px] px-5 py-8">
-        <div className="eyebrow">Claims-based risk stratification</div>
-        <h1 className="mt-2 text-[32px] font-semibold text-ink">
-          The high-utilizer tail, surfaced before the flare
-        </h1>
-        <p className="mt-2.5 max-w-[74ch] text-[17px]">
-          Eligibility and claims feeds rank the enrolled panel on 90-day ED risk: prior ED use,
-          nephritis, steroid bursts, polypharmacy, missed infusions and lapsed prior authorizations.
-          Select a member to see what the platform is doing for them right now.
-        </p>
-
-        <div className="mt-8 flex flex-wrap gap-10">
-          {[
-            ["8,412", "Enrolled members"],
-            ["1,190", "High-risk tier"],
-            ["2", "Open contacts tonight"],
-            ["4 days", "Median time to specialist"],
-          ].map(([v, k]) => (
-            <div key={k}>
-              <div className="font-display text-[26px] font-semibold leading-tight text-ink">
-                {v}
-              </div>
-              <div className="text-[14px] text-muted-foreground">{k}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
-          <div className="panel min-w-0 overflow-hidden">
-            <PanelHeader icon={Users} title="Enrolled panel" aside="Risk recomputed nightly" />
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-[15px]">
-                <thead>
-                  <tr className="border-t border-hairline">
-                    {["Member", "90-day ED risk", "ED 12mo", "Risk drivers", "Status"].map((h) => (
-                      <th
-                        key={h}
-                        className="whitespace-nowrap px-3.5 py-2.5 text-left text-[13px] font-medium text-muted-foreground"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {roster.map((r) => (
-                    <tr
-                      key={r.name}
-                      onClick={() => setSel(r.name)}
-                      className={`cursor-pointer border-t border-hairline ${sel === r.name ? "bg-peri-wash" : "hover:bg-blush-wash"}`}
-                    >
-                      <td className="px-3.5 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <Portrait
-                            who={r.photo}
-                            size="sm"
-                            className={r.live ? "" : "opacity-60 saturate-50"}
-                          />
-                          <div className="min-w-0">
-                            <div
-                              className={`font-medium ${r.live ? "text-slate" : "text-muted-foreground"}`}
-                            >
-                              {r.name}
-                            </div>
-                            <div className="text-[13.5px] text-muted-foreground">{r.meta}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-3.5 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <span className="h-1.5 w-14 overflow-hidden rounded-full bg-plum/15">
-                            <span
-                              className={`block h-full rounded-full ${r.risk > 85 ? "bg-emergent" : "bg-plum"}`}
-                              style={{ width: `${r.risk}%` }}
-                            />
-                          </span>
-                          <span className="font-mono text-[14px] font-semibold text-slate">
-                            {r.risk}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-3.5 py-3.5 font-mono text-slate">{r.ed}</td>
-                      <td className="hidden px-3.5 py-3.5 md:table-cell">
-                        <div className="flex flex-wrap gap-1.5">
-                          {r.drivers.map((d) => (
-                            <span
-                              key={d}
-                              className="whitespace-nowrap rounded-full bg-blush-soft px-2.5 py-0.5 text-[13px] font-medium text-rose-deep"
-                            >
-                              {d}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-3.5 py-3.5">
-                        {r.open ? (
-                          <span className="inline-flex items-center gap-2 whitespace-nowrap text-[14px] font-medium text-emergent">
-                            <span className="pulse-dot size-2 rounded-full bg-emergent" /> Open{" "}
-                            {r.open}
-                          </span>
-                        ) : (
-                          <span className="whitespace-nowrap text-[14px] text-muted-foreground">
-                            Routine outreach
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <aside className="panel min-w-0 overflow-hidden">
-            <PanelHeader icon={UserRound} title="Member detail" />
-            {row ? (
-              <div className="border-t border-hairline p-5">
-                <div className="flex items-center gap-3.5">
-                  <Portrait who={row.photo} size="lg" />
-                  <div className="min-w-0">
-                    <div className="font-display text-[20px] font-semibold text-ink">
-                      {row.name}
-                    </div>
-                    <div className="text-[14px] text-muted-foreground">{row.meta}</div>
-                  </div>
-                </div>
-                <dl className="mt-4 text-[14.5px]">
-                  {[
-                    ["90-day ED risk", String(row.risk)],
-                    ["ED visits, 12 mo", String(row.ed)],
-                    ["Contact", row.open ?? "None open"],
-                  ].map(([k, v]) => (
-                    <div
-                      key={k}
-                      className="flex justify-between gap-3 border-t border-hairline py-2.5"
-                    >
-                      <dt className="text-muted-foreground">{k}</dt>
-                      <dd className="font-medium text-slate">{v}</dd>
-                    </div>
-                  ))}
-                </dl>
-                {row.open ? (
-                  <Link
-                    to="/app/chat"
-                    className="mt-5 flex items-center justify-center gap-2 rounded-full bg-action px-4 py-2.5 text-center text-[14.5px] font-medium text-cream transition-colors hover:bg-action-deep"
-                  >
-                    <PhoneCall size={14} strokeWidth={2.25} /> Open triage session
-                  </Link>
-                ) : (
-                  <p className="mt-5 text-[14.5px] text-muted-foreground">
-                    No open contact. Scheduled for proactive outreach in this week's queue.
-                  </p>
-                )}
-              </div>
+      <ChartTabPanel value="snapshot">
+        <dl className="grid grid-cols-2 border-b border-hairline bg-card lg:grid-cols-4">
+          <Field label="Diagnosis">{p.dx}</Field>
+          <Field label="90-day ED risk">
+            <span className="font-mono font-semibold tabular-nums">{p.risk}</span>
+          </Field>
+          <Field label="ED visits, 12 mo">
+            <span className="font-mono tabular-nums">{p.ed}</span>
+          </Field>
+          <Field label="Open contact">{p.openedAt ? fmtDateTime(p.openedAt) : "None open"}</Field>
+        </dl>
+        <div className="bg-card">
+          <SectionHeader title="Risk drivers" aside="Claims-derived, recomputed nightly" />
+          <div className="flex flex-wrap gap-1 px-2.5 py-2">
+            {p.drivers.length > 0 ? (
+              p.drivers.map((d) => (
+                <Chip key={d} severity="abnormal">
+                  {d}
+                </Chip>
+              ))
             ) : (
-              <p className="p-6 text-center text-[15px] text-muted-foreground">Select a member.</p>
+              <span className="text-[12px] text-muted-foreground">
+                No active risk drivers. Routine outreach cadence.
+              </span>
             )}
-          </aside>
+          </div>
+          <SectionHeader
+            title="Abnormal results"
+            aside={`${abnormal} of ${p.labs.length} flagged`}
+          />
+          <DataTable
+            label={`Abnormal results for ${p.last}, ${p.first}`}
+            rows={p.labs.filter((l) => l.flag)}
+            columns={labColumns}
+            rowKey={(l) => l.name}
+            empty="All results within reference range."
+          />
         </div>
+      </ChartTabPanel>
 
-        <p className="mt-8 max-w-[80ch] text-[14px] leading-relaxed text-muted-foreground">
-          Risk scores are model output on simulated claims. In production the score is recomputed
-          nightly and the top decile is routed to proactive outreach regardless of whether the
-          member calls. Prototype — not for clinical use. Photographs depict models, not real
-          members or patients; no one pictured has any condition named on this site.
-        </p>
-      </div>
+      <ChartTabPanel value="labs">
+        <DataTable
+          label={`Laboratory results for ${p.last}, ${p.first}`}
+          rows={p.labs}
+          columns={labColumns}
+          rowKey={(l) => l.name}
+          initialSort={{ key: "drawn", dir: "desc" }}
+        />
+      </ChartTabPanel>
+
+      <ChartTabPanel value="meds">
+        <DataTable
+          label={`Active medications for ${p.last}, ${p.first}`}
+          rows={p.meds}
+          columns={medColumns}
+          rowKey={(m) => m.name}
+        />
+      </ChartTabPanel>
+
+      <ChartTabPanel value="encounters">
+        <DataTable
+          label={`Encounters for ${p.last}, ${p.first}`}
+          rows={p.encounters}
+          columns={encounterColumns}
+          rowKey={(e) => e.when}
+          initialSort={{ key: "when", dir: "desc" }}
+        />
+      </ChartTabPanel>
+
+      <ChartTabPanel value="notes">
+        {/* Notes stay prose in a bordered list rather than a table: a narrative
+            forced into a cell either truncates or blows the row rhythm. */}
+        <ul className="bg-card">
+          {p.notes.map((n) => (
+            <li key={n.when} className="border-b border-hairline px-2.5 py-2">
+              <div className="flex flex-wrap items-baseline gap-x-2">
+                <span className="text-[12.5px] font-semibold text-slate">{n.kind}</span>
+                <span className="font-mono text-[11.5px] text-muted-foreground tabular-nums">
+                  {fmtDateTime(n.when)}
+                </span>
+                <span className="text-[11.5px] text-muted-foreground">{n.author}</span>
+              </div>
+              <p className="mt-0.5 max-w-[92ch] text-[12.5px] leading-[1.45] text-slate">
+                {n.excerpt}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </ChartTabPanel>
+    </ChartTabs>
+  );
+}
+
+/* ----------------------------------------------------------------- shell */
+
+function Placeholder({ section }: { section: string }) {
+  return (
+    <div className="flex flex-1 items-center justify-center p-8 text-[12.5px] text-muted-foreground">
+      {section} is not part of this prototype.
     </div>
   );
 }
+
+function Console() {
+  const [section, setSection] = useState<ConsoleSection>("worklist");
+  const [selId, setSelId] = useState<string | null>("delgado-m");
+  const p = panel.find((r) => r.id === selId) ?? null;
+
+  return (
+    // h-screen + overflow-hidden makes this an app shell rather than a
+    // document: the rail, the worklist and the chart each scroll on their own,
+    // which is what lets the patient banner stay pinned while the chart moves.
+    <div className="ehr-shell flex h-screen overflow-hidden bg-canvas">
+      <ConsoleSidebar active={section} onSelect={setSection} openCount={panelStats.openContacts} />
+
+      {section !== "worklist" ? (
+        <Placeholder section={NAV_LABEL[section]} />
+      ) : (
+        <div className="flex min-w-0 flex-1 flex-col xl:flex-row">
+          <section
+            aria-label="Worklist"
+            className="flex max-h-[38vh] min-w-0 shrink-0 flex-col border-b border-hairline bg-card xl:max-h-none xl:w-[560px] xl:border-r xl:border-b-0"
+          >
+            <SectionHeader
+              title="Enrolled panel"
+              aside={`${panel.length} patients · ${panelStats.openContacts} open`}
+            />
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <DataTable
+                label="Enrolled panel worklist"
+                rows={panel}
+                columns={worklistColumns}
+                rowKey={(r) => r.id}
+                selected={selId ?? undefined}
+                onSelect={(r) => setSelId(r.id)}
+                initialSort={{ key: "risk", dir: "desc" }}
+              />
+              <p className="border-t border-hairline px-2.5 py-2 text-[11px] leading-[1.45] text-muted-foreground">
+                Risk scores are model output on simulated claims, recomputed nightly; the top decile
+                routes to proactive outreach whether or not the patient calls. Prototype — not for
+                clinical use. Photographs depict models, not real patients.
+              </p>
+            </div>
+          </section>
+
+          <section aria-label="Patient chart" className="flex min-w-0 flex-1 flex-col">
+            {p ? (
+              <>
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                  <PatientBanner p={p} />
+                  <Chart p={p} />
+                </div>
+                <ActionBar context={`${p.last}, ${p.first} · MRN ${p.mrn}`} />
+              </>
+            ) : (
+              <div className="flex flex-1 flex-col items-center justify-center gap-2 text-muted-foreground">
+                <UserRound size={16} strokeWidth={1.75} aria-hidden="true" />
+                <p className="text-[12.5px]">Select a patient from the worklist.</p>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const NAV_LABEL: Record<ConsoleSection, string> = {
+  worklist: "Worklist",
+  schedule: "Schedule",
+  results: "Results",
+  messages: "In basket",
+  orders: "Orders",
+  reports: "Reports",
+};

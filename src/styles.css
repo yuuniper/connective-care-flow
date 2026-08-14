@@ -89,6 +89,14 @@
   --color-hairline: var(--hairline);
   --color-hairline-dark: var(--hairline-dark);
 
+  /* Clinical console density. The console carries no palette of its own — it
+     draws on the tokens above and differs only in scale. These two are the
+     exception because the system has no value at either size: the tightest
+     radius here is --radius-sm at 6px, and a 32px data row is a density
+     contract worth naming rather than spelling h-8 at every call site. */
+  --radius-ehr: 3px;
+  --spacing-ehr-row: 32px;
+
   /* Tinted with the deck's deep blue and kept low-contrast: panels should feel
      like paper resting on the page, not cards floating over a dashboard. */
   --shadow-panel:
@@ -320,6 +328,54 @@
     transparent 6px 12px
   );
   opacity: 0.7;
+}
+
+/*
+ * Console density scope.
+ *
+ * The console is the same product as the rest of the site, set at clinical
+ * density — so this scope changes scale and nothing else. Type, color and
+ * surfaces all come from the tokens above; only the measurements move.
+ *
+ * body stays at 16px/1.65 globally; density is opted into by this wrapper
+ * alone, which is what keeps it off every other page.
+ *
+ * Note what is deliberately absent: no font-family override. Fraunces still
+ * sets headings here, because a patient's name at the top of their chart is a
+ * heading in exactly the sense the display face exists for. Small section
+ * labels get DM Sans the way the rest of the site does — through `font-sans`,
+ * the same escape the `eyebrow` utility uses for precisely that job.
+ *
+ * All of it lives in @layer base so a utility still wins: unlayered rules
+ * outrank every layered one, which would have made `leading-*` or `text-*`
+ * silently dead on any heading inside the console.
+ */
+@layer base {
+  .ehr-shell {
+    font-size: 13px;
+    line-height: 1.35;
+    color: var(--color-slate);
+  }
+
+  /* Headings keep Fraunces; only the marketing-page air comes out of them.
+     Higher specificity than the bare h1–h4 rule above, so this wins on order
+     and intent rather than by leaving the layer. */
+  .ehr-shell h1,
+  .ehr-shell h2,
+  .ehr-shell h3,
+  .ehr-shell h4 {
+    line-height: 1.25;
+    text-wrap: initial;
+  }
+
+  /* The global rule offsets the ring by 2px, which collides with the
+     neighbouring row once rows are 32px tall. Tighten it rather than lose the
+     indicator. */
+  .ehr-shell :focus-visible {
+    outline: 2px solid var(--color-plum);
+    outline-offset: -2px;
+    border-radius: var(--radius-ehr);
+  }
 }
 
 @keyframes thyma-rise {
