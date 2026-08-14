@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { RotateCcw, ShieldAlert } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  MessageCircleQuestion,
+  RotateCcw,
+  ShieldCheck,
+  Siren,
+} from "lucide-react";
 import { PanelHeader } from "@/components/thyma/panel";
 import { Portrait, PortraitStack } from "@/components/thyma/portrait";
 import { chatFlow, dispositions, patient, redFlags, type ChatTurn } from "@/data/thyma";
@@ -8,17 +15,17 @@ import { chatFlow, dispositions, patient, redFlags, type ChatTurn } from "@/data
 export const Route = createFileRoute("/app/chat")({
   head: () => ({
     meta: [
-      { title: "Ask Thyma — 24/7 symptom triage for lupus flares" },
+      { title: "Ask Thyma — someone to talk to when a flare starts" },
       {
         name: "description",
         content:
-          "An AI agent that knows your diagnosis, medications and labs, runs a red-flag screen in plain language, and routes you to home care, an urgent specialist, or the ED.",
+          "Tell Thyma what's happening in your own words. It knows your diagnosis, medications and labs, checks the dangerous things first, and books what tonight actually needs.",
       },
-      { property: "og:title", content: "Ask Thyma — 24/7 symptom triage for lupus flares" },
+      { property: "og:title", content: "Ask Thyma — someone to talk to when a flare starts" },
       {
         property: "og:description",
         content:
-          "Interactive triage walkthrough: answer as Maria and watch the red-flag screen resolve into a disposition.",
+          "Interactive walkthrough: answer as Maria and watch the safety checks resolve into a plan for the night.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -37,6 +44,25 @@ const clockAt = (i: number) => CLOCK[Math.min(Math.max(i, 0), CLOCK.length - 1)]
 const getTurn = (id: string): ChatTurn | null => chatFlow[id] ?? null;
 const openingLines = (): Line[] =>
   (getTurn("start")?.agent ?? []).map((t) => ({ kind: "agent" as const, text: t, at: clockAt(0) }));
+
+/**
+ * How each outcome is dressed. Only the emergency case gets a solid fill — a
+ * saturated banner is the right amount of loud for "go now" and the wrong
+ * amount for the two outcomes that mean you can stay home.
+ */
+const OUTCOME_STYLE = {
+  emergent: { band: "bg-emergent text-cream", disc: "bg-cream/20 text-cream", icon: Siren },
+  urgent: {
+    band: "bg-urgent/12 text-urgent",
+    disc: "bg-urgent/15 text-urgent",
+    icon: AlertTriangle,
+  },
+  routine: {
+    band: "bg-routine/12 text-routine",
+    disc: "bg-routine/15 text-routine",
+    icon: ShieldCheck,
+  },
+} as const;
 
 function Chat() {
   const [turnId, setTurnId] = useState<string>("start");
@@ -87,85 +113,87 @@ function Chat() {
   }
 
   const d = outcome ? dispositions[outcome] : null;
-  const tone =
-    d?.level === "emergent" ? "bg-emergent" : d?.level === "urgent" ? "bg-urgent" : "bg-routine";
+  const style = d ? OUTCOME_STYLE[d.level] : null;
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="eyebrow">Tuesday · 7:02 PM · symptom-triggered contact</div>
-          <h1 className="mt-1.5 text-[28px] font-semibold">Ask Thyma</h1>
-          <p className="mt-1 max-w-[70ch] text-[15.5px] text-muted-foreground">
-            Tell Thyma what's happening. It screens for red flags first, then books what you
-            actually need — home care, an urgent specialist visit, or the ED with a warm handoff.
+          <div className="eyebrow">Tuesday, 7:02 PM</div>
+          <h1 className="mt-1.5 text-[32px] font-semibold text-ink">Ask Thyma</h1>
+          <p className="mt-2 max-w-[66ch] text-[17px]">
+            Tell us what's happening in your own words. We check the dangerous things first, then
+            book what tonight actually needs — rest at home, a specialist in the morning, or the
+            emergency room with the team already expecting you.
           </p>
         </div>
         <button
           onClick={restart}
-          className="flex items-center gap-1.5 rounded-md border border-hairline bg-card px-3 py-2 text-[14px] font-medium hover:border-plum hover:bg-blush-wash"
+          className="flex items-center gap-2 rounded-full border border-hairline bg-card px-4 py-2 text-[14.5px] font-medium text-slate transition-colors hover:bg-blush-wash hover:text-ink"
         >
-          <RotateCcw size={13} strokeWidth={2.25} /> Restart conversation
+          <RotateCcw size={14} strokeWidth={2.25} /> Start over
         </button>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_268px] lg:items-start">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
         {/* transcript */}
-        <section className="panel flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between border-b border-hairline bg-cream px-4 py-2.5">
+        <section className="panel flex min-w-0 flex-col overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 pb-3 pt-4">
             <span className="flex items-center gap-2.5">
               <Portrait who="osei" size="sm" />
-              <span className="text-[15px] font-semibold leading-tight">
-                Secure thread
-                <span className="block text-[12px] font-normal text-muted-foreground">
-                  Dr. Osei has access
+              <span className="text-[15.5px] font-medium leading-tight text-slate">
+                Dr. Osei can see this thread
+                <span className="block text-[13.5px] font-normal text-muted-foreground">
+                  Everything here goes in your chart
                 </span>
               </span>
             </span>
             {!outcome ? (
-              <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-emergent">
-                <span className="pulse-dot size-1.5 rounded-full bg-emergent" /> Live
+              <span className="inline-flex items-center gap-2 text-[14px] font-medium text-routine">
+                <span className="pulse-dot size-2 rounded-full bg-routine" /> Someone is here
               </span>
             ) : (
-              <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-routine">
-                Resolved
-              </span>
+              <span className="text-[14px] font-medium text-routine">Wrapped up</span>
             )}
           </div>
 
-          <div ref={threadRef} className="flex max-h-[460px] flex-col gap-3 overflow-y-auto p-4">
+          <div
+            ref={threadRef}
+            className="flex max-h-[480px] flex-col gap-4 overflow-y-auto border-t border-hairline p-5"
+          >
             {lines.map((l, i) =>
               l.kind === "sys" ? (
                 <div
                   key={i}
-                  className="rise mx-auto rounded-md border border-dashed border-hairline px-3 py-2 text-center font-mono text-[12.5px] text-muted-foreground"
+                  className="rise mx-auto max-w-[92%] rounded-full bg-blush-wash px-4 py-1.5 text-center text-[13.5px] text-muted-foreground"
                 >
                   {l.text}
                 </div>
               ) : (
                 <div
                   key={i}
-                  className={`rise flex max-w-[84%] items-end gap-2.5 ${
+                  className={`rise flex max-w-[86%] items-end gap-2.5 ${
                     l.kind === "you" ? "flex-row-reverse self-end" : "self-start"
                   }`}
                 >
                   {l.kind === "you" ? (
                     <Portrait who={patient.photo} size="sm" />
                   ) : (
-                    /* The agent is software, not a person — deliberately not a face. */
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-hairline bg-cream font-mono text-[9px] font-semibold uppercase tracking-[0.06em] text-plum">
-                      AI
+                    /* The agent is software, not a person — deliberately not a
+                       face. Same icon the rail uses for Ask Thyma. */
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-blush-soft text-plum">
+                      <MessageCircleQuestion size={17} strokeWidth={2} />
                     </span>
                   )}
                   <div className={`flex flex-col gap-1 ${l.kind === "you" ? "items-end" : ""}`}>
-                    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-                      {l.kind === "you" ? patient.first : "Thyma agent"} · {l.at}
+                    <span className="text-[13px] text-muted-foreground">
+                      {l.kind === "you" ? patient.first : "Thyma"} · {l.at}
                     </span>
                     <span
-                      className={`rounded-[10px] px-3.5 py-2.5 text-[14.5px] leading-relaxed ${
+                      className={`rounded-2xl px-4 py-2.5 text-[15.5px] leading-relaxed ${
                         l.kind === "you"
-                          ? "rounded-br-[3px] bg-plum text-primary-foreground"
-                          : "rounded-bl-[3px] border border-hairline bg-cream/70"
+                          ? "rounded-br-md bg-action text-cream"
+                          : "rounded-bl-md bg-blush-wash text-slate"
                       }`}
                     >
                       {l.text}
@@ -176,16 +204,16 @@ function Chat() {
             )}
           </div>
 
-          <div className="border-t border-hairline bg-paper p-4">
+          <div className="border-t border-hairline p-5">
             {turn ? (
               <>
-                <div className="eyebrow mb-2.5">Choose your reply</div>
-                <div className="flex flex-col gap-2">
+                <div className="mb-3 text-[14px] text-muted-foreground">Your reply</div>
+                <div className="flex flex-col gap-2.5">
                   {turn.options.map((o) => (
                     <button
                       key={o.label}
                       onClick={() => choose(o, lines.length)}
-                      className="rounded-md border border-hairline bg-card px-3.5 py-2.5 text-left text-[14.5px] transition-colors hover:border-plum hover:bg-cream/50"
+                      className="rounded-xl border border-hairline bg-card px-4 py-3 text-left text-[15.5px] text-slate transition-colors hover:border-plum hover:bg-blush-wash"
                     >
                       {o.label}
                     </button>
@@ -193,50 +221,53 @@ function Chat() {
                 </div>
               </>
             ) : (
-              <p className="text-[14px] text-muted-foreground">
-                Session resolved. A human coordinator reads this thread within 15 minutes, always.
+              <p className="text-[14.5px] text-muted-foreground">
+                A care coordinator reads this thread within 15 minutes — always, including now.
               </p>
             )}
           </div>
         </section>
 
-        {/* red flag screen */}
-        <aside className="panel overflow-hidden">
-          <PanelHeader
-            icon={ShieldAlert}
-            tone="emergent"
-            title="Red-flag screen"
-            aside={
-              <span className="font-mono">
-                {cleared}/{redFlags.length} cleared
-              </span>
-            }
-          />
-          <ul className="p-3.5">
+        {/* safety checks */}
+        <aside className="panel min-w-0 overflow-hidden">
+          {/* The count lives in the sentence rather than in PanelHeader's aside:
+              in a 280px column the aside wraps under the title and strands. */}
+          <PanelHeader icon={ShieldCheck} title="Safety checks" />
+          <p className="px-5 pb-1 text-[13.5px] text-muted-foreground">
+            <span className="font-medium text-routine">
+              {cleared} of {redFlags.length} clear
+            </span>{" "}
+            — these are the things we rule out first, chosen for your diagnosis and medications.
+          </p>
+          <ul className="px-5 pb-4 pt-3">
             {redFlags.map((r) => {
               const s = flags[r.id];
               return (
                 <li
                   key={r.id}
-                  className={`flex gap-2.5 border-b border-hairline py-2.5 text-[13.5px] leading-snug last:border-0 ${s === "fired" ? "font-semibold text-emergent" : ""}`}
+                  className={`flex gap-3 py-2.5 text-[14.5px] leading-snug ${
+                    s === "fired" ? "font-medium text-emergent" : "text-slate"
+                  }`}
                 >
                   <span
-                    className={`mt-0.5 flex size-[15px] shrink-0 items-center justify-center rounded-[3px] border text-[11px] font-bold text-white ${
+                    className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full ${
                       s === "cleared"
-                        ? "border-routine bg-routine"
+                        ? "bg-routine text-cream"
                         : s === "fired"
-                          ? "border-emergent bg-emergent"
-                          : "border-hairline"
+                          ? "bg-emergent text-cream"
+                          : /* Stronger than --hairline on purpose: an empty ring is
+                               the only marker for "not checked yet", so it has to
+                               clear 3:1 rather than whisper like ordinary chrome. */
+                            "border border-muted-foreground/75"
                     }`}
                   >
-                    {s === "cleared" ? "✓" : s === "fired" ? "!" : ""}
+                    {s === "cleared" ? (
+                      <Check size={12} strokeWidth={3} />
+                    ) : s === "fired" ? (
+                      <AlertTriangle size={11} strokeWidth={2.75} />
+                    ) : null}
                   </span>
-                  <span>
-                    <span className="mr-1.5 font-mono text-[11.5px] text-muted-foreground">
-                      {r.id}
-                    </span>
-                    {r.t}
-                  </span>
+                  <span>{r.t}</span>
                 </li>
               );
             })}
@@ -244,60 +275,60 @@ function Chat() {
         </aside>
       </div>
 
-      {/* disposition */}
-      {d ? (
+      {/* the plan */}
+      {d && style ? (
         <section className="panel overflow-hidden">
-          <div className={`flex flex-wrap items-center gap-3 px-4 py-3 text-white ${tone}`}>
-            <span className="font-display text-[15px] font-bold uppercase tracking-[0.1em]">
-              {d.label}
+          <div className={`flex flex-wrap items-center gap-3 px-5 py-4 ${style.band}`}>
+            <span
+              className={`flex size-8 shrink-0 items-center justify-center rounded-full ${style.disc}`}
+            >
+              <style.icon size={17} strokeWidth={2.25} />
             </span>
-            <span className="ml-auto rounded-sm bg-white/20 px-2 py-0.5 font-mono text-[11.5px] tracking-[0.06em]">
-              Screen resolved · {new Date().toLocaleDateString()}
-            </span>
+            <span className="font-display text-[19px] font-semibold">{d.label}</span>
           </div>
-          <div className="p-5">
-            <h2 className="text-[18px] font-semibold">{d.head}</h2>
-            <ul className="mt-3.5 flex flex-col gap-2">
+          <div className="border-t border-hairline p-5">
+            <h2 className="text-[20px] font-semibold text-ink">{d.head}</h2>
+            <ul className="mt-4 flex flex-col gap-2.5">
               {d.acts.map((a) => (
-                <li key={a} className="flex gap-2.5 text-[14.5px]">
-                  <span className="font-semibold text-plum">→</span>
+                <li key={a} className="flex gap-3 text-[15.5px] text-slate">
+                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-rose" />
                   {a}
                 </li>
               ))}
             </ul>
-            <div className="mt-5 flex flex-wrap items-center gap-3">
+            <div className="mt-6 flex flex-wrap items-center gap-4">
               {d.level === "emergent" ? (
-                <span className="inline-flex items-center gap-2.5 rounded-md bg-emergent px-4 py-2 text-[14px] font-semibold text-white">
-                  <Portrait who="brant" size="sm" className="ring-white/40" />
+                <span className="inline-flex items-center gap-2.5 rounded-full bg-emergent px-4 py-2 text-[14.5px] font-medium text-cream">
+                  <Portrait who="brant" size="sm" className="ring-cream/40" />
                   Tasha is staying on the line
                 </span>
               ) : (
                 <button
                   onClick={() => setBooked(true)}
                   disabled={booked}
-                  className="rounded-md bg-action px-4 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-action-deep disabled:opacity-40"
+                  className="rounded-full bg-action px-5 py-2.5 text-[14.5px] font-medium text-cream transition-colors hover:bg-action-deep disabled:opacity-40"
                 >
-                  {booked ? "Confirmed ✓" : "Confirm this plan"}
+                  {booked ? "Confirmed" : "That works — confirm it"}
                 </button>
               )}
               <Link
                 to="/app/care"
-                className="text-[14px] font-semibold text-plum underline underline-offset-4 hover:text-ink"
+                className="text-[14.5px] font-medium text-plum underline decoration-blush decoration-2 underline-offset-4 hover:text-ink"
               >
                 See it land on the care team →
               </Link>
             </div>
             {booked && (
-              <p className="rise mt-3 flex items-center gap-2.5 text-[13.5px] text-routine">
+              <p className="rise mt-4 flex items-center gap-2.5 text-[14.5px] text-routine">
                 <PortraitStack who={["brant", "kaur"]} size="xs" />
-                Added to your queue. Tasha has been paged and Dr. Kaur received the trend chart.
+                Added to your queue. Tasha has been paged, and Dr. Kaur has your trend chart.
               </p>
             )}
           </div>
         </section>
       ) : (
-        <div className="rounded-md border border-dashed border-hairline px-4 py-8 text-center text-[14px] text-muted-foreground">
-          A disposition appears once the red-flag screen resolves.
+        <div className="rounded-2xl bg-blush-wash px-5 py-10 text-center text-[15px] text-muted-foreground">
+          Once the safety checks are done, your plan for tonight appears here.
         </div>
       )}
     </div>

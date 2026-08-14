@@ -9,10 +9,15 @@ const TONES = {
 } as const;
 
 /**
- * Standard panel header: icon in a tinted tile, sentence-case title, optional
- * right-aligned meta. One shape everywhere so panels read as chart sections,
- * not decorated boxes. `tone` is semantic — reserve urgent/emergent for
- * safety-related panels.
+ * Standard panel header: icon in a tinted disc, sentence-case title, optional
+ * right-aligned meta. One shape everywhere so panels read as sections of a
+ * page rather than decorated boxes. `tone` is semantic — reserve
+ * urgent/emergent for safety-related panels.
+ *
+ * Deliberately has no rule beneath it and no filled bar: the title's size and
+ * the disc carry the hierarchy. The earlier version stacked a tinted bar and a
+ * hairline on top of the panel's own border, which made every panel read as a
+ * spreadsheet frame.
  */
 export function PanelHeader({
   icon: Icon,
@@ -26,14 +31,14 @@ export function PanelHeader({
   tone?: keyof typeof TONES;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2.5 border-b border-hairline bg-cream px-4 py-2.5">
+    <div className="flex flex-wrap items-center gap-3 px-5 pb-3 pt-4">
       <span
-        className={`flex size-7 shrink-0 items-center justify-center rounded-md ${TONES[tone]}`}
+        className={`flex size-8 shrink-0 items-center justify-center rounded-full ${TONES[tone]}`}
       >
-        <Icon size={15} strokeWidth={2} />
+        <Icon size={16} strokeWidth={2} />
       </span>
-      <h2 className="text-[15px] font-semibold leading-tight">{title}</h2>
-      {aside && <span className="ml-auto text-[12.5px] text-muted-foreground">{aside}</span>}
+      <h2 className="text-[17px] font-semibold leading-tight text-ink">{title}</h2>
+      {aside && <span className="ml-auto text-[14px] text-muted-foreground">{aside}</span>}
     </div>
   );
 }

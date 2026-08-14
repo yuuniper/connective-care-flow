@@ -5,27 +5,42 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Thyma design system — "clinical indigo".
- * Indigo carries every action and active state; magenta/blush survive only in
- * the brand gradient and the wordmark. Chrome (borders, washes, shadows) is
- * neutral slate so the product reads clinical, not candy.
+ * Thyma design system — the deck palette, warmly applied.
  *
- * Naming note: the blush-* and cream tokens kept their names through the
- * recolor to avoid churning class names across the app — their values are now
- * the neutral indigo washes. Archivo display, IBM Plex Sans body, IBM Plex
- * Mono strictly for data (labs, times, IDs). All colors are oklch tokens.
+ * All hues come from "thyma deck 12 — script.pptx": #5D6AFF primary blue,
+ * #3440B0 deep blue, #C84C7E magenta, #FDB2DF soft pink, #E7E6E6 light gray,
+ * #44546A slate. The division of labour is what makes it feel personal rather
+ * than generic: BLUE carries structure and action (headings, buttons, links),
+ * MAGENTA AND PINK carry warmth and are used openly — section labels, washes,
+ * pills, timeline dots, underlines, the wordmark. The earlier iteration hid
+ * both inside a single brand gradient and put everything else on pure #FFFFFF,
+ * which is what made it read clinical and templated.
+ *
+ * The page is never pure white: --paper is an off-white carrying a whisper of
+ * the deck's own pink, so panels have something to sit on.
+ *
+ * Naming note: --plum and --indigo are both blues, and --cream has no yellow in
+ * it. These names are inherited and kept deliberately so a recolor doesn't churn
+ * class names across every page; read them as roles, not hues. --plum is the
+ * app-wide link/active color and is a touch deeper than #5D6AFF so body-size
+ * links clear AA; #5D6AFF itself lives in --blue for large and decorative use.
+ *
+ * Fraunces display (humanist serif), DM Sans body, IBM Plex Mono strictly for
+ * real data (lab values, MRN, dollar figures) and never for anything human.
+ * All colors are oklch. Every foreground/background pair in use clears WCAG AA.
  */
 
 @theme inline {
-  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-  --radius-sm: calc(var(--radius) - 3px);
-  --radius-md: calc(var(--radius) - 1px);
+  /* 6 / 9 / 12 / 16 / 24 — Thyme's own radii cluster at 5, 10, 20, 24. */
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-2xl: calc(var(--radius) + 12px);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -49,16 +64,20 @@
 
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
+  --color-ink-deep: var(--ink-deep);
   --color-action: var(--action);
   --color-action-deep: var(--action-deep);
   --color-plum: var(--plum);
   --color-plum-deep: var(--plum-deep);
+  --color-blue: var(--blue);
   --color-rose: var(--rose);
   --color-rose-deep: var(--rose-deep);
   --color-indigo: var(--indigo);
   --color-blush: var(--blush);
   --color-blush-soft: var(--blush-soft);
+  --color-blush-band: var(--blush-band);
   --color-blush-wash: var(--blush-wash);
+  --color-peri-wash: var(--peri-wash);
   --color-cream: var(--cream);
   --color-canvas: var(--canvas);
   --color-paper: var(--paper);
@@ -70,45 +89,74 @@
   --color-hairline: var(--hairline);
   --color-hairline-dark: var(--hairline-dark);
 
-  --shadow-panel: 0 1px 2px oklch(0.32 0.05 265 / 0.05), 0 8px 24px oklch(0.32 0.05 265 / 0.07);
-  --shadow-lift: 0 2px 4px oklch(0.32 0.05 265 / 0.08), 0 18px 40px oklch(0.32 0.05 265 / 0.14);
-  --gradient-brand: linear-gradient(120deg, var(--indigo) 0%, oklch(0.5605 0.2148 320) 48%, var(--rose) 82%, var(--blush) 100%);
+  /* Tinted with the deck's deep blue and kept low-contrast: panels should feel
+     like paper resting on the page, not cards floating over a dashboard. */
+  --shadow-panel:
+    0 1px 2px oklch(0.4355 0.1764 272 / 0.05), 0 10px 28px oklch(0.4355 0.1764 272 / 0.07);
+  --shadow-lift:
+    0 2px 6px oklch(0.4355 0.1764 272 / 0.07), 0 20px 44px oklch(0.4355 0.1764 272 / 0.13);
+  /* Deck gradient: deep blue → primary blue → magenta → soft pink. Kept for the
+     wordmark and incidental use; large flat fills use --ink-deep instead. */
+  --gradient-brand: linear-gradient(
+    135deg,
+    var(--ink) 0%,
+    var(--blue) 42%,
+    var(--rose) 82%,
+    var(--blush) 100%
+  );
 }
 
 :root {
-  --radius: 0.375rem;
+  --radius: 0.75rem;
 
   /* Deck palette: #5D6AFF primary blue, #3440B0 deep blue, #C84C7E magenta,
-     #FDB2DF soft pink, #FFFFFF white, #E7E6E6 light gray, #44546A slate,
-     #5F5F57 neutral gray. */
-  --ink: oklch(0.4355 0.1764 272.03); /* #3440B0 deep blue */
+     #FDB2DF soft pink, #E7E6E6 light gray, #44546A slate. */
+
+  /* Blue — structure and action. */
+  --ink: oklch(0.4355 0.1764 272.03); /* #3440B0 deep blue — headings, dark chrome */
   --ink-2: oklch(0.3866 0.1572 272.12);
-  --action: oklch(0.4355 0.1764 272.03); /* primary actions — deep indigo */
+  --ink-deep: oklch(0.33 0.15 272); /* large flat dark fills, e.g. the 7pm band */
+  --action: oklch(0.4355 0.1764 272.03); /* #3440B0 — primary buttons */
   --action-deep: oklch(0.3866 0.1572 272.12); /* pressed */
-  --plum: oklch(0.5992 0.2186 273.96); /* #5D6AFF primary blue */
+  --plum: oklch(0.52 0.205 273); /* links & active state — #5D6AFF deepened for AA */
   --plum-deep: oklch(0.4355 0.1764 272.03);
-  --indigo: oklch(0.5992 0.2186 273.96);
-  --rose: oklch(0.5959 0.1645 358.3); /* #C84C7E magenta — gradient + wordmark only */
-  --rose-deep: oklch(0.4869 0.1503 357.5);
-  --blush: oklch(0.8474 0.1036 342.83); /* #FDB2DF soft pink — gradient endpoint */
-  --blush-soft: oklch(0.9314 0.0272 274.5); /* periwinkle hover / pill bg */
-  --blush-wash: oklch(0.9688 0.0119 274.9); /* faint indigo section wash */
-  --cream: oklch(0.9769 0.0055 271.4); /* cool near-white */
-  --canvas: oklch(0.9581 0.0072 271); /* portal page background — panels sit white on this */
-  --paper: oklch(1 0 0); /* #FFFFFF */
+  --blue: oklch(0.5992 0.2186 273.96); /* #5D6AFF verbatim — large text, decoration */
+  --indigo: oklch(0.5992 0.2186 273.96); /* #5D6AFF */
+
+  /* Magenta and pink — warmth, used openly rather than hidden in the gradient. */
+  --rose: oklch(0.5959 0.1645 358.3); /* #C84C7E magenta */
+  --rose-deep: oklch(0.4869 0.1503 357.5); /* section labels, wordmark, warm accents */
+  --blush: oklch(0.8474 0.1036 342.83); /* #FDB2DF soft pink — dots, borders, underlines */
+  --blush-soft: oklch(0.908 0.056 343); /* pills, avatar backgrounds */
+  /* Full-bleed pink band (the pull quote). Deliberately low-chroma so #FDB2DF
+     reads as a dusty wash rather than bubblegum. */
+  --blush-band: oklch(0.945 0.021 343);
+  --blush-wash: oklch(0.97 0.015 343); /* faint pink section wash */
+  --peri-wash: oklch(0.945 0.029 274); /* light periwinkle — the "with us" panel */
+
+  /* Neutrals — off-white, never #FFFFFF, carrying a whisper of the deck's pink. */
+  --paper: oklch(0.988 0.006 343); /* the page */
+  --cream: oklch(0.976 0.0105 343); /* one step under the page — washes, footer */
+  --canvas: oklch(0.965 0.014 343); /* portal background — panels sit card-white on this */
   --mist: oklch(0.9257 0.0011 17.18); /* #E7E6E6 light gray */
   --slate: oklch(0.4413 0.0416 256.44); /* #44546A body text */
+
+  /* Status. Held at L 0.50–0.55 so each passes as text on the washes *and*
+     carries white text when used as a fill. */
   --emergent: oklch(0.5088 0.1632 26.24);
-  --urgent: oklch(0.6276 0.1255 69.96);
-  --routine: oklch(0.5322 0.0733 165.29);
-  --hairline: oklch(0.4413 0.0416 256.44 / 0.22);
-  --hairline-dark: oklch(1 0 0 / 0.16);
+  /* Amber sits lower than the others: it needs to clear AA both as text on its
+     own 12% tint (the "Do now" marker, the "High" lab flag) and under white
+     when used as a solid fill. */
+  --urgent: oklch(0.52 0.1255 69.96);
+  --routine: oklch(0.5 0.0733 165.29);
+  --hairline: oklch(0.4413 0.0416 256.44 / 0.18);
+  --hairline-dark: oklch(1 0 0 / 0.18);
 
   --background: var(--paper);
-  --foreground: oklch(0.4413 0.0416 256.44);
-  --card: oklch(1 0 0);
+  --foreground: var(--slate);
+  --card: oklch(0.995 0.003 343);
   --card-foreground: var(--slate);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.995 0.003 343);
   --popover-foreground: var(--slate);
   --primary: var(--plum);
   --primary-foreground: oklch(1 0 0);
@@ -117,7 +165,7 @@
   --accent: var(--plum);
   --accent-foreground: oklch(1 0 0);
   --muted: var(--blush-wash);
-  --muted-foreground: oklch(0.5 0.028 259); /* muted slate */
+  --muted-foreground: oklch(0.515 0.033 258); /* muted slate */
   --destructive: var(--emergent);
   --destructive-foreground: oklch(1 0 0);
   --border: var(--hairline);
@@ -128,14 +176,19 @@
 .dark {
   --ink: oklch(0.2892 0.1128 272.5);
   --ink-2: oklch(0.2464 0.0942 272.5);
+  --ink-deep: oklch(0.22 0.085 272.5);
   --action: oklch(0.5992 0.2186 273.96);
   --action-deep: oklch(0.5205 0.2 273.5);
-  --cream: oklch(0.9769 0.0055 271.4);
+  --plum: oklch(0.75 0.155 274); /* lift the link blue to read on dark indigo */
+  --rose-deep: oklch(0.78 0.14 350); /* lift the magenta likewise */
+  --cream: oklch(0.976 0.0105 343);
   --canvas: oklch(0.1902 0.0611 272.6);
   --paper: oklch(0.2141 0.0692 272.6);
   --mist: oklch(0.2892 0.1128 272.5);
   --blush-soft: oklch(0.3324 0.0866 274);
+  --blush-band: oklch(0.29 0.08 300);
   --blush-wash: oklch(0.2635 0.0748 273);
+  --peri-wash: oklch(0.3 0.09 274);
   --slate: oklch(0.9 0.012 275);
   --hairline: oklch(1 0 0 / 0.14);
   --hairline-dark: oklch(1 0 0 / 0.14);
@@ -147,7 +200,7 @@
   --popover: var(--card);
   --popover-foreground: oklch(0.96 0.008 275);
   --primary: var(--plum);
-  --primary-foreground: oklch(1 0 0);
+  --primary-foreground: oklch(0.16 0.05 272.6);
   --secondary: var(--blush-soft);
   --secondary-foreground: oklch(0.96 0.008 275);
   --muted: oklch(1 0 0 / 0.07);
@@ -156,9 +209,6 @@
   --input: var(--hairline);
   --ring: var(--plum);
 }
-
-
-
 
 @layer base {
   * {
@@ -173,18 +223,27 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-size: 15px;
-    line-height: 1.55;
+    font-size: 16px;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Fraunces is a humanist serif — it wants near-neutral tracking and optical
+     sizing, not the tight negative tracking a grotesque display face needs. */
   h1,
   h2,
   h3,
   h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.015em;
+    font-optical-sizing: auto;
+    font-variation-settings: "SOFT" 30;
+    letter-spacing: -0.004em;
+    line-height: 1.15;
     text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   :focus-visible {
@@ -199,32 +258,49 @@
   }
 }
 
-/* Section label. Quiet slate sans — mono is reserved for data values. */
+/*
+ * Section label. Sentence case in the deck's magenta — this is the main place
+ * the warm half of the palette gets to speak. The previous uppercase
+ * 0.09em-tracked slate version shouted above every heading, including ones as
+ * gentle as "Community".
+ */
 @utility eyebrow {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: oklch(0.54 0.032 261);
+  letter-spacing: 0.005em;
+  color: var(--color-rose-deep);
 }
 
 @utility panel {
   background: var(--color-card);
   border: 1px solid var(--color-hairline);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-panel);
+}
+
+/* Borderless variant: separation by tint and soft shadow alone. Prefer this
+   where a panel sits on cream and does not need to read as a data container. */
+@utility panel-soft {
+  background: var(--color-card);
+  border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-panel);
 }
 
 @utility panel-accent {
   background: var(--color-blush-wash);
-  border: 1px solid var(--color-blush);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-blush-soft);
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-panel);
 }
 
 @utility wash-pink {
   background: var(--color-blush-wash);
+}
+
+/* Full-bleed soft-pink band — the deck's #FDB2DF at wash strength. */
+@utility wash-band {
+  background: var(--color-blush-band);
 }
 
 @utility pill-pink {
@@ -240,17 +316,16 @@
 @utility rule-line {
   background-image: repeating-linear-gradient(
     90deg,
-    var(--color-rose) 0 6px,
+    var(--color-blush) 0 6px,
     transparent 6px 12px
   );
-  opacity: 0.55;
+  opacity: 0.7;
 }
-
 
 @keyframes thyma-rise {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -264,15 +339,22 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.25;
+    opacity: 0.35;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .rise {
-    animation: thyma-rise 0.28s ease-out;
+    animation: thyma-rise 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
   .pulse-dot {
-    animation: thyma-pulse 1.8s ease-in-out infinite;
+    animation: thyma-pulse 2.6s ease-in-out infinite;
+  }
+
+  /* Sections settle in as they arrive rather than snapping. */
+  .reveal {
+    animation: thyma-rise 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 55%;
   }
 }

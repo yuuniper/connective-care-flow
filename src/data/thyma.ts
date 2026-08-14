@@ -78,6 +78,34 @@ export const beforeAfter = {
   ],
 };
 
+/**
+ * Homepage voices. Members first, then the coordinator — the point of the last
+ * one is that the work it describes used to fall on the patient.
+ */
+export const voices: { photo: PersonKey; name: string; meta: string; quote: string }[] = [
+  {
+    photo: "denise",
+    name: "Denise A.",
+    meta: "45 · lupus, 7 years",
+    quote:
+      "I stopped dreading 8 p.m. Someone actually asked me what the nausea was like, and then changed something about it.",
+  },
+  {
+    photo: "rosalind",
+    name: "Rosalind K.",
+    meta: "38 · class IV nephritis",
+    quote:
+      "For two years nobody told me what to watch for. Now I keep a log, and my kidney doctor actually reads it.",
+  },
+  {
+    photo: "brant",
+    name: "Tasha Brant, RN",
+    meta: "Care coordinator at Thyma",
+    quote:
+      "My job is the part that used to fall on the patient — the referrals, the denials, the callbacks. If I've done it right, Maria never hears about any of it.",
+  },
+];
+
 export type CareTeamMember = {
   id: string;
   /** Indexes into `people` in ./people.ts. */
@@ -196,14 +224,20 @@ export const checkins = [
   { day: "Thu", items: ["Slept 5 h", "Pain 4/10"], flag: null },
 ];
 
+/**
+ * The safety screen, written for the person answering it rather than for a
+ * chart. Thresholds are kept — they are what she can actually measure at home —
+ * but the clinical shorthand is not. The `id`s stay as internal state keys and
+ * are never shown: "R3" means nothing to Maria.
+ */
 export const redFlags = [
-  { id: "R1", t: "Chest pain, pleuritic pain, or new shortness of breath" },
-  { id: "R2", t: "Temperature ≥ 38.0 °C while immunosuppressed" },
-  { id: "R3", t: "Systolic BP < 90 or heart rate > 120" },
-  { id: "R4", t: "New neurologic change — confusion, weakness, seizure" },
-  { id: "R5", t: "Single hot swollen joint with fever" },
-  { id: "R6", t: "Reduced urine output, new oedema, or foamy urine" },
-  { id: "R7", t: "No response to home flare protocol beyond 48 hours" },
+  { id: "R1", t: "Chest pain, pain when you breathe in, or new shortness of breath" },
+  { id: "R2", t: "A fever of 38 °C / 100.4 °F or higher" },
+  { id: "R3", t: "Blood pressure under 90, or a pulse over 120" },
+  { id: "R4", t: "Anything new and neurological — confusion, weakness, a seizure" },
+  { id: "R5", t: "One joint hot and swollen, much worse than the rest, with a fever" },
+  { id: "R6", t: "Passing less urine, new puffiness, or foamy urine" },
+  { id: "R7", t: "The home flare plan not working after 48 hours" },
 ];
 
 export type ChatTurn = {
@@ -252,7 +286,7 @@ export const chatFlow: Record<string, ChatTurn> = {
         label: "37.4. No headache. Just exhausted and sore.",
         clear: ["R2", "R4"],
         next: "joint",
-        system: "Home cuff paired · BP 118/74 · HR 88 — R3 cleared",
+        system: "Home cuff paired · BP 118/74 · pulse 88 — blood pressure and pulse are fine",
       },
       { label: "38.9 and I can't stop shivering.", fire: ["R2"], next: "fever" },
     ],
@@ -281,13 +315,13 @@ export const chatFlow: Record<string, ChatTurn> = {
         clear: ["R7"],
         next: "urgent",
         system:
-          "R6 triggered on a class III nephritis history · routing to urgent rheumatology + nephrology, not the emergency department",
+          "A kidney warning sign, on a history of class III nephritis — routing you to urgent rheumatology and nephrology, not the emergency room",
       },
       {
         label: "No swelling, urine looks normal.",
         clear: ["R6", "R7"],
         next: "routine",
-        system: "Screen clear · home flare protocol pathway",
+        system: "Every safety check is clear — home flare plan",
       },
     ],
   },
@@ -299,7 +333,8 @@ export const chatFlow: Record<string, ChatTurn> = {
         label: "88 over 54. Heart rate 118.",
         fire: ["R3"],
         next: "ed",
-        system: "R2 + R3 on immunosuppression · sepsis pathway · screen halted",
+        system:
+          "Fever with a low blood pressure while immunosuppressed — infection pathway, screen stops here",
       },
     ],
   },
@@ -308,39 +343,39 @@ export const chatFlow: Record<string, ChatTurn> = {
 export const dispositions = {
   urgent: {
     level: "urgent" as const,
-    label: "Urgent — seen within 24 hours",
-    head: "Next-morning rheumatology, nephrology loop-in, labs tonight",
-    body: "Nothing here needs an emergency room. But foamy urine and three days of ankle swelling on a class III nephritis history need quantitative labs and a specialist tomorrow — not in three weeks, and not from an ED that will discharge you with ibuprofen.",
+    label: "Urgent — you'll be seen within 24 hours",
+    head: "Rheumatology in the morning, your kidney doctor looped in, labs tonight",
+    body: "Nothing here needs an emergency room. But foamy urine and three days of ankle swelling, on your kidney history, need proper labs and a specialist tomorrow — not in three weeks, and not from an emergency room that will send you home with ibuprofen.",
     acts: [
       "Rheumatology 8:40 AM tomorrow — Dr. Osei, Riverside",
-      "Stat UPCR, creatinine and C3/C4 tonight at the 24-hour lab on Vine",
-      "Dr. Kaur (nephrology) notified with the trend chart attached",
-      "Prednisone bridge 20 mg tonight per your standing protocol",
+      "Urine and kidney bloods tonight, at the 24-hour lab on Vine Street",
+      "Dr. Kaur, your kidney doctor, notified with your trend chart attached",
+      "Prednisone 20 mg tonight, per the plan you already have",
       "Tasha calls you at 9 AM whether or not you make the visit",
     ],
   },
   ed: {
     level: "emergent" as const,
-    label: "Emergent — go now",
-    head: "Directed to Mercy General, warm handoff already placed",
-    body: "This is the one time the answer is the emergency department, and the platform's job is to get you there faster and better documented than you would arrive alone. Say the words: immunosuppressed on mycophenolate, febrile, hypotensive.",
+    label: "Go now — this one needs the emergency room",
+    head: "Mercy General — and they already know you are coming",
+    body: "This is the one time the answer is the emergency room. Our job is to get you there faster, and better documented, than you would arrive alone. When you get there, tell them: I am immunosuppressed on mycophenolate, I have a fever, and my blood pressure is low.",
     acts: [
-      "Mercy General ED pre-notified with your medication list and last labs",
+      "Mercy General already has your medication list and your last labs",
       "Dr. Osei paged — on-call response in 6 minutes",
       "Nurse stays on this line until you confirm arrival",
-      "Post-discharge outreach queued for 24 hours after disposition",
+      "Someone checks in on you the day after you get home",
     ],
   },
   routine: {
     level: "routine" as const,
-    label: "Routine — manage at home",
-    head: "Home flare protocol, with a 48-hour tripwire",
-    body: "This looks like your usual flare pattern with no red flags. We treat it at home and I check back — if it hasn't turned by Wednesday, that automatically becomes an urgent visit without you having to ask.",
+    label: "We can manage this at home",
+    head: "We manage it at home, with a 48-hour safety net",
+    body: "This looks like your usual flare pattern, with nothing dangerous behind it. We treat it at home and I check back — if it has not turned by Wednesday, that becomes an urgent visit on its own, without you having to ask.",
     acts: [
-      "Home flare protocol: rest, NSAID schedule, heat, hydration log",
+      "Your home flare plan: rest, anti-inflammatories on schedule, heat, and log what you drink",
       "Daily check-in prompt at 8 PM for 3 days",
-      "Automatic urgent rheumatology booking if no improvement in 48 hours",
-      "Dr. Osei sees this thread at her Monday panel review",
+      "An urgent rheumatology visit books itself if nothing improves in 48 hours",
+      "Dr. Osei reads this thread at her Monday review",
     ],
   },
 };

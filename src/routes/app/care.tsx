@@ -33,33 +33,33 @@ function Care() {
   const slot = referralSlots.find((s) => s.id === picked) ?? null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <div className="eyebrow">Referrals · shared record · prior authorizations</div>
-        <h1 className="mt-1.5 text-[28px] font-semibold">Your care team</h1>
-        <p className="mt-1 max-w-[70ch] text-[15.5px] text-muted-foreground">
-          Four people, one chart, one medication list. When rheumatology changes your dose,
-          nephrology sees it the same afternoon.
+        <div className="eyebrow">Referrals and prior authorizations</div>
+        <h1 className="mt-1.5 text-[32px] font-semibold text-ink">Your care team</h1>
+        <p className="mt-2 max-w-[66ch] text-[17px]">
+          Four people, one chart, one medication list. When your rheumatologist changes a dose, your
+          kidney doctor sees it the same afternoon.
         </p>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-5 md:grid-cols-2">
         {careTeam.map((c) => (
-          <article key={c.id} className="panel p-4">
+          <article key={c.id} className="panel p-5">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-start gap-3.5">
+              <div className="flex min-w-0 items-start gap-4">
                 <Portrait who={c.photo} size="lg" />
                 <div className="min-w-0">
                   <div className="eyebrow">{c.role}</div>
-                  <h2 className="mt-1 text-[18px] font-semibold">{c.name}</h2>
-                  <div className="text-[13.5px] text-muted-foreground">{c.site}</div>
+                  <h2 className="mt-1 text-[20px] font-semibold text-ink">{c.name}</h2>
+                  <div className="text-[14.5px] text-muted-foreground">{c.site}</div>
                 </div>
               </div>
-              <span className="whitespace-nowrap rounded-sm border border-hairline bg-cream px-2 py-1 font-mono text-[12.5px] text-plum">
+              <span className="whitespace-nowrap text-[14.5px] font-medium text-plum">
                 {c.next}
               </span>
             </div>
-            <p className="mt-3 border-t border-hairline pt-3 text-[14px] text-muted-foreground">
+            <p className="mt-4 border-t border-hairline pt-4 text-[15px] text-muted-foreground">
               {c.note}
             </p>
           </article>
@@ -73,18 +73,20 @@ function Care() {
           tone="urgent"
           title="Open referral"
           aside={
-            <span className="font-mono font-semibold text-urgent">Urgent — book within 24 h</span>
+            <span className="rounded-full bg-urgent/12 px-3 py-1 text-[13.5px] font-medium text-urgent">
+              Book within 24 hours
+            </span>
           }
         />
 
-        <div className="p-5">
-          <h2 className="text-[18px] font-semibold">Choose a slot</h2>
-          <p className="mt-1 max-w-[70ch] text-[14.5px] text-muted-foreground">
-            These are contracted Thyma slots, held open for members with an active red flag. Median
-            time to seen across the network is four days.
+        <div className="border-t border-hairline p-5">
+          <h2 className="text-[20px] font-semibold text-ink">Choose a time</h2>
+          <p className="mt-1.5 max-w-[66ch] text-[15px] text-muted-foreground">
+            These are slots Thyma holds open for members who need to be seen quickly. Across the
+            network, most people are seen within four days.
           </p>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
             {referralSlots.map((s) => {
               const on = picked === s.id;
               return (
@@ -94,19 +96,19 @@ function Care() {
                     setPicked(s.id);
                     setConfirmed(null);
                   }}
-                  className={`rounded-md border p-3.5 text-left transition-colors ${
+                  className={`rounded-2xl border p-4 text-left transition-colors ${
                     on
-                      ? "border-plum bg-cream shadow-panel"
+                      ? "border-plum bg-blush-wash shadow-panel"
                       : "border-hairline bg-card hover:border-plum hover:bg-blush-wash"
                   }`}
                 >
                   <div className="eyebrow">{s.spec}</div>
-                  <div className="mt-1 font-semibold">{s.when}</div>
-                  <div className="mt-1.5 flex items-center gap-2 text-[13.5px] text-muted-foreground">
+                  <div className="mt-1 text-[16px] font-medium text-slate">{s.when}</div>
+                  <div className="mt-2 flex items-center gap-2 text-[14px] text-muted-foreground">
                     <Portrait who={s.photo} size="xs" />
                     {s.who}
                   </div>
-                  <div className="mt-2 border-t border-hairline pt-2 font-mono text-[12px] text-plum">
+                  <div className="mt-3 border-t border-hairline pt-3 text-[13.5px] text-plum">
                     {s.mode} · {s.tag}
                   </div>
                 </button>
@@ -114,29 +116,38 @@ function Care() {
             })}
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="mt-6 flex flex-wrap items-center gap-4">
             <button
               disabled={!slot || !!confirmed}
               onClick={() => slot && setConfirmed(slot.id)}
-              className="rounded-md bg-action px-4 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-action-deep disabled:opacity-40"
+              className={`rounded-full px-5 py-2.5 text-[14.5px] font-medium text-cream transition-colors ${
+                confirmed ? "bg-routine" : "bg-action hover:bg-action-deep disabled:opacity-40"
+              }`}
             >
-              {confirmed ? "Appointment confirmed ✓" : "Confirm appointment"}
+              {confirmed ? "Appointment confirmed" : "Confirm appointment"}
             </button>
             {!picked && (
-              <span className="text-[13.5px] text-muted-foreground">Pick a slot to continue.</span>
+              <span className="text-[14.5px] text-muted-foreground">Pick a time to continue.</span>
             )}
           </div>
 
           {confirmed && slot && (
-            <div className="rise mt-4 rounded-md border border-routine/40 bg-routine/8 p-4 text-[14.5px]">
-              <div className="font-semibold text-routine">
+            <div className="rise mt-5 rounded-2xl bg-routine/10 p-5 text-[15px]">
+              <div className="font-medium text-routine">
                 Confirmed — {slot.when} with {slot.who}
               </div>
-              <ul className="mt-2 space-y-1.5 text-muted-foreground">
-                <li>→ Records, trend chart and last labs sent ahead automatically</li>
-                <li>→ Ride credit issued; text reminder 2 hours before</li>
-                <li>→ Dr. Osei notified so the two visits do not duplicate work</li>
-                <li>→ Tasha will call you the morning after with the plan in plain language</li>
+              <ul className="mt-3 space-y-2 text-muted-foreground">
+                {[
+                  "Your records, trend chart and last labs go ahead of you",
+                  "Ride credit issued, and a text reminder two hours before",
+                  "Dr. Osei notified, so the two visits do not repeat each other",
+                  "Tasha calls you the morning after, in plain language",
+                ].map((line) => (
+                  <li key={line} className="flex gap-3">
+                    <span className="mt-2 size-1.5 shrink-0 rounded-full bg-routine" />
+                    {line}
+                  </li>
+                ))}
               </ul>
             </div>
           )}
@@ -145,8 +156,8 @@ function Care() {
 
       {/* Auth tracker */}
       <section className="panel overflow-hidden">
-        <PanelHeader icon={FileCheck2} title="Prior authorizations & prescriptions" />
-        <ul className="text-[14.5px]">
+        <PanelHeader icon={FileCheck2} title="Prescriptions and paperwork" />
+        <ul className="text-[15px]">
           {[
             {
               t: "Mycophenolate 1 g BID · 90-day",
@@ -169,22 +180,29 @@ function Care() {
           ].map((r) => (
             <li
               key={r.t}
-              className="flex flex-wrap items-center gap-3 border-b border-hairline px-4 py-3 last:border-0"
+              className="flex flex-wrap items-center gap-3 border-t border-hairline px-5 py-3.5"
             >
-              <span className="min-w-[220px] flex-1 font-medium">{r.t}</span>
-              <span className="text-[13.5px] text-muted-foreground">{r.d}</span>
-              <span className={`font-mono text-[13px] ${r.tone}`}>{r.s}</span>
+              <span className="min-w-[220px] flex-1 font-medium text-slate">{r.t}</span>
+              <span className="text-[14px] text-muted-foreground">{r.d}</span>
+              <span
+                className={`rounded-full px-3 py-1 text-[13.5px] font-medium ${r.tone === "text-routine" ? "bg-routine/12 text-routine" : "bg-urgent/12 text-urgent"}`}
+              >
+                {r.s}
+              </span>
             </li>
           ))}
         </ul>
       </section>
 
-      <p className="text-[14px] text-muted-foreground">
+      <p className="text-[15px] text-muted-foreground">
         Need something tonight instead?{" "}
-        <Link to="/app/chat" className="font-semibold text-plum underline underline-offset-4">
+        <Link
+          to="/app/chat"
+          className="font-medium text-plum underline decoration-blush decoration-2 underline-offset-4 hover:text-ink"
+        >
           Ask Thyma
         </Link>{" "}
-        and the agent books it for you.
+        and we book it for you.
       </p>
     </div>
   );

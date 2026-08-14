@@ -87,17 +87,33 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:title", content: "Thyma — Coordinated virtual care for autoimmune disease" },
       { name: "twitter:title", content: "Thyma — Coordinated virtual care for autoimmune disease" },
-      { property: "og:description", content: "Thyma is virtual managed care for lupus and rheumatoid arthritis: referral in, coordinated specialty care, and tracking between visits so nothing falls through the gaps." },
-      { name: "twitter:description", content: "Thyma is virtual managed care for lupus and rheumatoid arthritis: referral in, coordinated specialty care, and tracking between visits so nothing falls through the gaps." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e219effc-f182-4702-92fb-6af34bc428ab/id-preview-4bd5abd1--56b6b20e-bc97-4ef3-be53-2b2f934bf7c4.lovable.app-1785621872024.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e219effc-f182-4702-92fb-6af34bc428ab/id-preview-4bd5abd1--56b6b20e-bc97-4ef3-be53-2b2f934bf7c4.lovable.app-1785621872024.png" },
+      {
+        property: "og:description",
+        content:
+          "Thyma is virtual managed care for lupus and rheumatoid arthritis: referral in, coordinated specialty care, and tracking between visits so nothing falls through the gaps.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Thyma is virtual managed care for lupus and rheumatoid arthritis: referral in, coordinated specialty care, and tracking between visits so nothing falls through the gaps.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e219effc-f182-4702-92fb-6af34bc428ab/id-preview-4bd5abd1--56b6b20e-bc97-4ef3-be53-2b2f934bf7c4.lovable.app-1785621872024.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e219effc-f182-4702-92fb-6af34bc428ab/id-preview-4bd5abd1--56b6b20e-bc97-4ef3-be53-2b2f934bf7c4.lovable.app-1785621872024.png",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..700,0..100&family=DM+Sans:opsz,wght@9..40,400..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap",
       },
       {
         rel: "stylesheet",

@@ -1,13 +1,17 @@
 import { Link } from "@tanstack/react-router";
 
-export function Wordmark({ tone = "light" }: { tone?: "light" | "dark" }) {
+/**
+ * `tone` names the surface the wordmark sits on: "light" for cream text on a
+ * dark aubergine block, "dark" for aubergine text on cream.
+ */
+export function Wordmark({ tone = "dark" }: { tone?: "light" | "dark" }) {
   return (
     <span
-      className={`font-display text-[19px] font-bold tracking-[0.22em] ${
+      className={`font-display text-[21px] font-semibold tracking-[0.15em] ${
         tone === "light" ? "text-cream" : "text-ink"
       }`}
     >
-      THY<span className={tone === "light" ? "text-blush" : "text-rose"}>MA</span>
+      THY<span className={tone === "light" ? "text-blush" : "text-rose-deep"}>MA</span>
     </span>
   );
 }
@@ -20,31 +24,36 @@ const nav = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-hairline-dark bg-ink">
-      <div className="mx-auto flex max-w-[1180px] flex-wrap items-center gap-x-7 gap-y-2 px-5 py-3.5">
+    <header className="sticky top-0 z-40 border-b border-hairline bg-paper/85 backdrop-blur-md">
+      {/*
+       * Below sm the nav drops to its own full-width row and the portal pill
+       * rides beside the wordmark, so nothing has to wrap mid-phrase. From sm
+       * up the order flips back to wordmark → nav → pill on one line.
+       */}
+      <div className="mx-auto flex max-w-[1180px] flex-wrap items-center gap-x-7 gap-y-3 px-5 py-4">
         <Link to="/" className="flex items-center gap-3">
           <Wordmark />
         </Link>
-        <span className="hidden border-l border-hairline-dark pl-4 text-[12.5px] text-cream/60 md:block">
-          Virtual managed care for autoimmune disease
+        <span className="hidden text-[13.5px] text-muted-foreground lg:block">
+          Care for autoimmune disease, held together
         </span>
-        <nav className="ml-auto flex items-center gap-1">
+        <Link
+          to="/app"
+          className="order-2 ml-auto shrink-0 whitespace-nowrap rounded-full bg-action px-4 py-2 text-[14px] font-medium text-cream transition-colors hover:bg-action-deep sm:order-3 sm:ml-2"
+        >
+          Open Maria's portal
+        </Link>
+        <nav className="order-3 flex w-full items-center gap-1 sm:order-2 sm:ml-auto sm:w-auto">
           {nav.map((n) => (
             <Link
               key={n.to}
               to={n.to}
               activeOptions={{ exact: n.to === "/" }}
-              className="rounded-sm px-2.5 py-1.5 text-[13.5px] text-cream/60 transition-colors hover:text-cream data-[status=active]:text-cream"
+              className="whitespace-nowrap rounded-md px-3 py-1.5 text-[14.5px] text-slate transition-colors hover:bg-blush-wash hover:text-ink data-[status=active]:font-medium data-[status=active]:text-plum"
             >
               {n.label}
             </Link>
           ))}
-          <Link
-            to="/app"
-            className="ml-2 rounded-sm bg-indigo px-3.5 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-white/90 hover:text-ink"
-          >
-            Open Maria's portal
-          </Link>
         </nav>
       </div>
     </header>
@@ -53,18 +62,18 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-hairline bg-cream/40">
-      <div className="mx-auto grid max-w-[1180px] gap-8 px-5 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
+    <footer className="mt-8 border-t border-hairline bg-cream">
+      <div className="mx-auto grid max-w-[1180px] gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <Wordmark tone="dark" />
-          <p className="mt-3 max-w-[46ch] text-[13.5px] text-muted-foreground">
-            One platform where autoimmune patients get referred in, receive coordinated specialty
-            care, and stay tracked between visits.
+          <p className="mt-3 max-w-[42ch] text-[14.5px] text-muted-foreground">
+            One place where your specialists talk to each other, and someone is always there to pick
+            up.
           </p>
         </div>
         <div>
           <div className="eyebrow mb-3">Product</div>
-          <ul className="space-y-1.5 text-[13.5px]">
+          <ul className="space-y-2 text-[14.5px]">
             <li>
               <Link to="/app" className="hover:text-plum">
                 Patient portal
@@ -89,7 +98,7 @@ export function SiteFooter() {
         </div>
         <div>
           <div className="eyebrow mb-3">Company</div>
-          <ul className="space-y-1.5 text-[13.5px]">
+          <ul className="space-y-2 text-[14.5px]">
             <li>
               <Link to="/providers" className="hover:text-plum">
                 For providers

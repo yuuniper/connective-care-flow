@@ -52,10 +52,14 @@ const questions = [
   { id: "energy", q: "Energy", opts: ["Good", "Okay", "Low", "Wiped out"] },
 ];
 
-/** Recessive mono tick style shared by every chart axis. */
+/**
+ * Recessive tick style shared by every chart axis. Body sans, not mono: these
+ * are month names and single decimals, and mono made a patient's own chart read
+ * like a terminal. Mono is kept for the measured value in the tooltip.
+ */
 const tickStyle = {
-  fontFamily: "IBM Plex Mono, monospace",
-  fontSize: 11.5,
+  fontFamily: "DM Sans, ui-sans-serif, system-ui, sans-serif",
+  fontSize: 12,
   fill: "var(--color-muted-foreground)",
 };
 
@@ -70,11 +74,9 @@ function UpcrTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-md border border-hairline bg-card px-3 py-2 shadow-panel">
-      <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-        {label} 2026 · monthly avg
-      </div>
-      <div className="mt-0.5 font-mono text-[14.5px] font-semibold text-ink">
+    <div className="rounded-xl bg-card px-3.5 py-2.5 shadow-lift">
+      <div className="text-[13px] text-muted-foreground">{label} 2026 · monthly average</div>
+      <div className="mt-0.5 font-mono text-[15px] font-semibold text-ink">
         {payload[0]!.value.toFixed(1)} g/g
       </div>
     </div>
@@ -90,34 +92,30 @@ function Tracking() {
   const latest = vitalsTrend[vitalsTrend.length - 1]!;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <div className="eyebrow">Passive tracking · 41 check-ins logged</div>
-        <h1 className="mt-1.5 text-[28px] font-semibold">Between visits</h1>
-        <p className="mt-1 max-w-[70ch] text-[15.5px] text-muted-foreground">
+        <div className="eyebrow">41 check-ins so far</div>
+        <h1 className="mt-1.5 text-[32px] font-semibold text-ink">Between visits</h1>
+        <p className="mt-2 max-w-[66ch] text-[17px]">
           The nine months between rheumatology appointments is where lupus does its damage. Four
           questions a day builds a chart your specialists open before you walk in — and one that
-          escalates itself when it needs to.
+          raises its hand on its own when something moves.
         </p>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-start">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-start">
         {/* Check-in */}
         <section className="panel overflow-hidden">
           <PanelHeader
             icon={ClipboardList}
             title="Tonight's check-in"
-            aside={
-              <span className="font-mono">
-                {Object.keys(answers).length}/{questions.length} answered
-              </span>
-            }
+            aside={`${Object.keys(answers).length} of ${questions.length} answered`}
           />
-          <div className="space-y-4 p-4">
+          <div className="space-y-5 border-t border-hairline p-5">
             {questions.map((q) => (
               <fieldset key={q.id}>
-                <legend className="text-[14.5px] font-medium">{q.q}</legend>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <legend className="text-[15.5px] font-medium text-slate">{q.q}</legend>
+                <div className="mt-2.5 flex flex-wrap gap-2">
                   {q.opts.map((o) => {
                     const on = answers[q.id] === o;
                     return (
@@ -127,10 +125,10 @@ function Tracking() {
                           setAnswers((a) => ({ ...a, [q.id]: o }));
                           setSent(false);
                         }}
-                        className={`rounded-full border px-3 py-1.5 text-[13.5px] transition-colors ${
+                        className={`rounded-full border px-3.5 py-1.5 text-[14.5px] transition-colors ${
                           on
-                            ? "border-action bg-action text-white"
-                            : "border-hairline bg-card hover:border-plum hover:bg-blush-wash"
+                            ? "border-action bg-action text-cream"
+                            : "border-hairline bg-card text-slate hover:border-plum hover:bg-blush-wash"
                         }`}
                       >
                         {o}
@@ -141,41 +139,41 @@ function Tracking() {
               </fieldset>
             ))}
 
-            <div className="flex flex-wrap items-center gap-3 border-t border-hairline pt-4">
+            <div className="flex flex-wrap items-center gap-4 border-t border-hairline pt-5">
               <button
                 disabled={!done || sent}
                 onClick={() => setSent(true)}
-                className="rounded-md bg-action px-4 py-2.5 text-[14px] font-semibold text-white hover:bg-action-deep disabled:opacity-40"
+                className={`rounded-full px-5 py-2.5 text-[14.5px] font-medium text-cream transition-colors ${
+                  sent ? "bg-routine" : "bg-action hover:bg-action-deep disabled:opacity-40"
+                }`}
               >
-                {sent ? "Logged ✓" : "Submit check-in"}
+                {sent ? "Logged" : "Send tonight's check-in"}
               </button>
               {!done && (
-                <span className="text-[13.5px] text-muted-foreground">Answer all four.</span>
+                <span className="text-[14.5px] text-muted-foreground">All four, then send.</span>
               )}
             </div>
 
             {sent && (
               <div
-                className={`rise rounded-md border p-3.5 text-[14px] ${
-                  escalate ? "border-urgent/50 bg-urgent/8" : "border-routine/40 bg-routine/8"
+                className={`rise rounded-2xl p-5 text-[15px] ${
+                  escalate ? "bg-urgent/10" : "bg-routine/10"
                 }`}
               >
                 {escalate ? (
                   <>
-                    <div className="font-semibold text-urgent">Escalated automatically</div>
-                    <p className="mt-1 text-muted-foreground">
-                      Renal signal on a nephritis history. A UPCR order is at the Vine Street lab,
-                      Dr. Kaur has the trend chart, and Tasha will call you within the hour. You did
-                      not have to know this was important.
+                    <div className="font-medium text-urgent">We picked this one up</div>
+                    <p className="mt-1.5 text-muted-foreground">
+                      That is a kidney signal on your history. A urine test is already waiting at
+                      the Vine Street lab, Dr. Kaur has your trend chart, and Tasha will call you
+                      within the hour. You did not have to know this one mattered.
                     </p>
                   </>
                 ) : (
                   <>
-                    <div className="font-semibold text-routine">
-                      Logged — nothing needs escalating
-                    </div>
-                    <p className="mt-1 text-muted-foreground">
-                      Added to the trend Dr. Osei reviews at Monday panel. Next prompt tomorrow at 8
+                    <div className="font-medium text-routine">Logged — nothing needs chasing</div>
+                    <p className="mt-1.5 text-muted-foreground">
+                      Added to the trend Dr. Osei reads on Monday. We will ask again tomorrow at 8
                       PM.
                     </p>
                   </>
@@ -187,12 +185,8 @@ function Tracking() {
 
         {/* Trend */}
         <section className="panel overflow-hidden">
-          <PanelHeader
-            icon={Activity}
-            title="Urine protein / creatinine ratio"
-            aside={<span className="font-mono">g/g · monthly</span>}
-          />
-          <div className="px-2 pt-4">
+          <PanelHeader icon={Activity} title="Protein in your urine" aside="Monthly average" />
+          <div className="border-t border-hairline px-2 pt-4">
             <div className="h-[196px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={vitalsTrend} margin={{ top: 6, right: 14, bottom: 0, left: -18 }}>
@@ -253,15 +247,14 @@ function Tracking() {
               ] as const
             ).map((m) => (
               <div key={m.key}>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-[12.5px] font-medium text-muted-foreground">
-                    {m.name} <span className="text-[11px]">· self-reported, 0–10</span>
-                  </span>
-                  <span className="font-mono text-[13px] font-semibold text-ink">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[14px] font-medium text-muted-foreground">{m.name}</span>
+                  <span className="text-[15px] font-semibold text-ink">
                     {latest[m.key]}
                     <span className="ml-1 font-normal text-routine">{m.dir}</span>
                   </span>
                 </div>
+                <div className="text-[12.5px] text-muted-foreground">how you rated it, 0–10</div>
                 <div className="mt-1 h-[44px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={vitalsTrend} margin={{ top: 4, right: 2, bottom: 2, left: 2 }}>
@@ -282,30 +275,26 @@ function Tracking() {
             ))}
           </div>
 
-          <p className="border-t border-hairline px-4 py-3 text-[13.5px] text-muted-foreground">
-            Target is under 0.5 g/g. Two consecutive rises trigger a nephrology review without
-            waiting for the next scheduled visit.
+          <p className="border-t border-hairline px-5 py-3.5 text-[14px] text-muted-foreground">
+            Your doctors call this the urine protein/creatinine ratio. Under 0.5 g/g is the target,
+            and two rises in a row get a kidney review without waiting for your next visit.
           </p>
         </section>
       </div>
 
       {/* Log */}
       <section className="panel overflow-hidden">
-        <PanelHeader icon={History} title="Recent log" aside="Visible to your whole care team" />
+        <PanelHeader icon={History} title="Recent log" aside="Your whole care team can see this" />
         <ul>
           {checkins.map((c) => (
             <li
               key={c.day}
-              className="grid gap-1 border-b border-hairline px-4 py-3.5 last:border-0 sm:grid-cols-[90px_minmax(0,1fr)]"
+              className="grid gap-1 border-t border-hairline px-5 py-4 sm:grid-cols-[100px_minmax(0,1fr)]"
             >
-              <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
-                {c.day}
-              </span>
+              <span className="text-[14px] font-medium text-rose-deep">{c.day}</span>
               <div>
-                <div className="text-[14.5px]">{c.items.join(" · ")}</div>
-                {c.flag && (
-                  <div className="mt-1 text-[13.5px] font-medium text-urgent">↳ {c.flag}</div>
-                )}
+                <div className="text-[15px] text-slate">{c.items.join(" · ")}</div>
+                {c.flag && <div className="mt-1 text-[14px] font-medium text-plum">→ {c.flag}</div>}
               </div>
             </li>
           ))}
