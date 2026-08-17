@@ -7,7 +7,7 @@ import { Link } from "@tanstack/react-router";
 export function Wordmark({ tone = "dark" }: { tone?: "light" | "dark" }) {
   return (
     <span
-      className={`font-display text-[21px] font-semibold tracking-[0.15em] ${
+      className={`font-wordmark text-[21px] font-semibold tracking-[0.15em] ${
         tone === "light" ? "text-cream" : "text-ink"
       }`}
     >

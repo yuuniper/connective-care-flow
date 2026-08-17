@@ -100,7 +100,7 @@ function Home() {
                 to="/app/chat"
                 className="rounded-full bg-action px-6 py-3.5 text-[15.5px] font-medium text-cream shadow-panel transition-colors hover:bg-action-deep"
               >
-                Walk through a hard night with Maria
+                Walk through a night with Maria
               </Link>
               <Link
                 to="/app"
@@ -125,9 +125,7 @@ function Home() {
             <figcaption className="mt-5 space-y-2">
               <div className="flex flex-wrap items-baseline gap-x-3">
                 <span className="text-[16px] font-medium text-slate">Maria, {patient.age}</span>
-                <span className="text-[15px] text-muted-foreground">
-                  Lupus, with her kidneys involved
-                </span>
+                <span className="text-[15px] text-muted-foreground">Lupus</span>
               </div>
               <div className="flex items-center gap-2.5 text-[15px] text-muted-foreground">
                 <Portrait who={lead.photo} size="sm" />

@@ -34,6 +34,8 @@
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  /* The wordmark alone keeps the original Archivo grotesque; headings are Fraunces. */
+  --font-wordmark: "Archivo", ui-sans-serif, system-ui, sans-serif;
 
   /* 6 / 9 / 12 / 16 / 24 — Thyme's own radii cluster at 5, 10, 20, 24. */
   --radius-sm: calc(var(--radius) - 6px);
