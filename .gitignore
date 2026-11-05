@@ -30,3 +30,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Build and tooling output
+.output
+.tanstack
+coverage
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Editor / OS
+.history
+Thumbs.db
