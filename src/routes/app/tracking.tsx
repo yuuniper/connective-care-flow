@@ -83,9 +83,15 @@ function UpcrTooltip({
   );
 }
 
+/** Check-ins Maria logged before tonight; tonight's adds one once sent. */
+const PAST_CHECKINS = 41;
+
 function Tracking() {
-  const [answers, setAnswers] = usePersistentState<Record<string, string>>("checkin.answers", {});
-  const [sent, setSent] = usePersistentState("checkin.sent", false);
+  const [answers, setAnswers, resetAnswers] = usePersistentState<Record<string, string>>(
+    "checkin.answers",
+    {},
+  );
+  const [sent, setSent, resetSent] = usePersistentState("checkin.sent", false);
   const done = questions.every((q) => answers[q.id]);
   const escalate = answers["urine"] === "Foamy" || answers["swell"] === "Worse than yesterday";
 
@@ -94,7 +100,7 @@ function Tracking() {
   return (
     <div className="space-y-8">
       <div>
-        <div className="eyebrow">41 check-ins so far</div>
+        <div className="eyebrow">{PAST_CHECKINS + (sent ? 1 : 0)} check-ins so far</div>
         <h1 className="mt-1.5 text-[32px] font-semibold text-ink">Between visits</h1>
         <p className="mt-2 max-w-[66ch] text-[17px]">
           The nine months between rheumatology appointments is where lupus does its damage. Four
@@ -111,6 +117,14 @@ function Tracking() {
             title="Tonight's check-in"
             aside={`${Object.keys(answers).length} of ${questions.length} answered`}
           />
+          {/* Lives outside the spaced column so it never affects layout; announces the result. */}
+          <p role="status" className="sr-only">
+            {sent
+              ? escalate
+                ? "Check-in sent. We picked this one up: Tasha will call you within the hour."
+                : "Check-in logged. Nothing needs chasing."
+              : ""}
+          </p>
           <div className="space-y-5 border-t border-hairline p-5">
             {questions.map((q) => (
               <fieldset key={q.id}>
@@ -154,6 +168,18 @@ function Tracking() {
               </button>
               {!done && (
                 <span className="text-[14.5px] text-muted-foreground">All four, then send.</span>
+              )}
+              {(sent || Object.keys(answers).length > 0) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetAnswers();
+                    resetSent();
+                  }}
+                  className="text-[14.5px] font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-plum hover:underline"
+                >
+                  {sent ? "Start a new check-in" : "Clear answers"}
+                </button>
               )}
             </div>
 
