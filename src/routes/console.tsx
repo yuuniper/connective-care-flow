@@ -3,7 +3,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { PhoneCall, UserRound, Users } from "lucide-react";
 import { PanelHeader } from "@/components/thyma/panel";
 import { Portrait } from "@/components/thyma/portrait";
-import { Wordmark } from "@/components/thyma/site-chrome";
+import { SkipLink, Wordmark } from "@/components/thyma/site-chrome";
 import type { PersonKey } from "@/data/people";
 
 export const Route = createFileRoute("/console")({
@@ -96,6 +96,7 @@ function Console() {
 
   return (
     <div className="min-h-screen bg-canvas">
+      <SkipLink />
       <header className="sticky top-0 z-40 border-b border-hairline bg-paper/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3.5">
           <Link to="/">
@@ -120,7 +121,7 @@ function Console() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-[1240px] px-5 py-8">
+      <main id="main" tabIndex={-1} className="mx-auto max-w-[1240px] px-5 py-8 outline-none">
         <div className="eyebrow">Claims-based risk stratification</div>
         <h1 className="mt-2 text-[32px] font-semibold text-ink">
           The high-utilizer tail, surfaced before the flare
@@ -286,7 +287,7 @@ function Console() {
           member calls. Prototype — not for clinical use. Photographs depict models, not real
           members or patients; no one pictured has any condition named on this site.
         </p>
-      </div>
+      </main>
     </div>
   );
 }

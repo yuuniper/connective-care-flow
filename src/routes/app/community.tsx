@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Heart } from "lucide-react";
+import { formatDistanceToNowStrict } from "date-fns";
+import { Heart, Trash2 } from "lucide-react";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { Portrait } from "@/components/thyma/portrait";
 import { communityPosts, communityRooms, patient } from "@/data/thyma";
 
@@ -26,14 +28,33 @@ export const Route = createFileRoute("/app/community")({
   component: Community,
 });
 
+/** A post Maria wrote in this browser. `roomId` is null when posted to "All rooms". */
+type MyPost = { id: string; text: string; roomId: string | null; at: number };
+
+const roomName = (id: string | null) =>
+  communityRooms.find((r) => r.id === id)?.name ?? "All rooms";
+
+const postedWhen = (at: number) =>
+  Date.now() - at < 60_000 ? "just now" : formatDistanceToNowStrict(at, { addSuffix: true });
+
 function Community() {
   const [room, setRoom] = useState<string>("all");
   const [draft, setDraft] = useState("");
-  const [posted, setPosted] = useState<string[]>([]);
-  const [liked, setLiked] = useState<string[]>([]);
+  const [posted, setPosted] = usePersistentState<MyPost[]>("community.posts", []);
+  const [liked, setLiked] = usePersistentState<string[]>("community.liked", []);
+
+  const submit = () => {
+    const text = draft.trim();
+    if (!text) return;
+    const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    setPosted((p) => [{ id, text, roomId: active?.id ?? null, at: Date.now() }, ...p]);
+    setDraft("");
+  };
 
   const active = communityRooms.find((r) => r.id === room);
   const shown = active ? communityPosts.filter((p) => p.room === active.name) : communityPosts;
+  // Your own posts follow the same filter: each one stays in the room it was posted to.
+  const mine = active ? posted.filter((p) => p.roomId === active.id) : posted;
 
   return (
     <div className="space-y-8">
@@ -48,6 +69,8 @@ function Community() {
 
       <div className="flex flex-wrap gap-2">
         <button
+          type="button"
+          aria-pressed={room === "all"}
           onClick={() => setRoom("all")}
           className={`rounded-full border px-4 py-1.5 text-[14.5px] transition-colors ${room === "all" ? "border-action bg-action text-cream" : "border-hairline bg-card text-slate hover:border-plum hover:bg-blush-wash"}`}
         >
@@ -56,6 +79,8 @@ function Community() {
         {communityRooms.map((r) => (
           <button
             key={r.id}
+            type="button"
+            aria-pressed={room === r.id}
             onClick={() => setRoom(r.id)}
             className={`rounded-full border px-4 py-1.5 text-[14.5px] transition-colors ${room === r.id ? "border-action bg-action text-cream" : "border-hairline bg-card text-slate hover:border-plum hover:bg-blush-wash"}`}
           >
@@ -90,43 +115,59 @@ function Community() {
           id="post"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          aria-describedby="post-hint"
           rows={3}
           placeholder="Ask something, or tell people what worked…"
           className="mt-3 w-full resize-none rounded-xl border border-hairline bg-paper px-4 py-3 text-[15.5px] text-slate outline-none focus:border-plum"
         />
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <button
+            type="button"
             disabled={!draft.trim()}
-            onClick={() => {
-              setPosted((p) => [draft.trim(), ...p]);
-              setDraft("");
-            }}
+            onClick={submit}
             className="rounded-full bg-action px-5 py-2 text-[14.5px] font-medium text-cream transition-colors hover:bg-action-deep disabled:opacity-40"
           >
             Post
           </button>
-          <span className="text-[14px] text-muted-foreground">
-            A moderator reads it within minutes. Nothing clinical is left to peers alone.
+          <span id="post-hint" className="text-[14px] text-muted-foreground">
+            Ctrl/⌘ + Enter to post. A moderator reads it within minutes. Nothing clinical is left to
+            peers alone.
           </span>
         </div>
       </section>
 
       <div className="space-y-4">
-        {posted.map((p, i) => (
-          <article key={`mine-${i}`} className="panel rise border-l-2 border-l-action p-5">
+        {mine.map((p) => (
+          <article key={p.id} className="panel rise border-l-2 border-l-action p-5">
             <div className="flex items-center gap-2.5">
               <Portrait who={patient.photo} size="sm" />
               <div className="flex flex-wrap items-baseline gap-2">
                 <span className="font-medium text-slate">Maria D.</span>
                 <span className="text-[14px] text-muted-foreground">
-                  34 · lupus and nephritis · just now
+                  {patient.age} · lupus and nephritis · {postedWhen(p.at)}
                 </span>
               </div>
             </div>
-            <p className="mt-3 text-[16px] text-slate">{p}</p>
-            <p className="mt-3 text-[14px] text-routine">
-              With a moderator now · going to {active?.name ?? "All rooms"}
-            </p>
+            <p className="mt-3 text-[16px] whitespace-pre-line text-slate">{p.text}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-4 text-[14px]">
+              <span className="text-routine">
+                With a moderator now · going to {roomName(p.roomId)}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPosted((all) => all.filter((x) => x.id !== p.id))}
+                className="ml-auto flex items-center gap-1.5 font-medium text-muted-foreground transition-colors hover:text-emergent"
+              >
+                <Trash2 size={14} strokeWidth={2.25} aria-hidden />
+                Remove
+              </button>
+            </div>
           </article>
         ))}
 
@@ -156,6 +197,8 @@ function Community() {
               <p className="mt-3 text-[16px] leading-relaxed text-slate">{p.body}</p>
               <div className="mt-4 flex items-center gap-5 border-t border-hairline pt-3 text-[14px]">
                 <button
+                  type="button"
+                  aria-label={`${on ? "Unlike" : "Like"} ${p.author}'s post`}
                   onClick={() => setLiked((l) => (on ? l.filter((x) => x !== key) : [...l, key]))}
                   aria-pressed={on}
                   className={`flex items-center gap-1.5 font-medium transition-colors ${on ? "text-rose-deep" : "text-muted-foreground hover:text-rose-deep"}`}

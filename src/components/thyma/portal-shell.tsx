@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { careTeam, patient } from "@/data/thyma";
 import { Portrait } from "./portrait";
-import { Wordmark } from "./site-chrome";
+import { SkipLink, Wordmark } from "./site-chrome";
 
 const rail = [
   { to: "/app", label: "Today", hint: "Your day at a glance", icon: LayoutDashboard },
@@ -98,6 +98,7 @@ export function PortalShell() {
 
   return (
     <div className="min-h-screen bg-canvas">
+      <SkipLink />
       <header className="sticky top-0 z-40 border-b border-hairline bg-paper/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3.5">
           <Link to="/">
@@ -128,7 +129,10 @@ export function PortalShell() {
         <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
           {/* No borders on the inactive items: five bordered boxes stacked in a
               224px column read as a control panel. Only the current page is filled. */}
-          <nav className="-mx-5 flex gap-1 overflow-x-auto px-5 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0">
+          <nav
+            aria-label="Member portal"
+            className="-mx-5 flex gap-1 overflow-x-auto px-5 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0"
+          >
             {rail.map((r) => {
               const active = r.to === "/app" ? pathname === "/app" : pathname.startsWith(r.to);
               const Icon = r.icon;
@@ -136,6 +140,9 @@ export function PortalShell() {
                 <Link
                   key={r.to}
                   to={r.to}
+                  // Without exact matching, Link would also mark "Today" as
+                  // aria-current="page" on every /app/* screen.
+                  activeOptions={{ exact: r.to === "/app" }}
                   className={`flex shrink-0 items-start gap-2.5 rounded-xl px-3 py-2.5 text-[14.5px] transition-colors lg:shrink ${
                     active
                       ? "bg-action text-cream"
@@ -169,7 +176,7 @@ export function PortalShell() {
           </Link>
         </aside>
 
-        <main className="min-w-0">
+        <main id="main" tabIndex={-1} className="min-w-0 outline-none">
           <Outlet />
           <p className="mt-8 border-t border-hairline pt-4 text-[12.5px] leading-relaxed text-muted-foreground">
             Prototype — not for clinical use. Photographs depict models, not real Thyma members,

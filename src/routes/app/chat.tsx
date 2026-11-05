@@ -128,6 +128,7 @@ function Chat() {
           </p>
         </div>
         <button
+          type="button"
           onClick={restart}
           className="flex items-center gap-2 rounded-full border border-hairline bg-card px-4 py-2 text-[14.5px] font-medium text-slate transition-colors hover:bg-blush-wash hover:text-ink"
         >
@@ -159,6 +160,10 @@ function Chat() {
 
           <div
             ref={threadRef}
+            role="log"
+            aria-live="polite"
+            aria-label="Conversation with Thyma"
+            tabIndex={0}
             className="flex max-h-[480px] flex-col gap-4 overflow-y-auto border-t border-hairline p-5"
           >
             {lines.map((l, i) =>
@@ -211,6 +216,7 @@ function Chat() {
                 <div className="flex flex-col gap-2.5">
                   {turn.options.map((o) => (
                     <button
+                      type="button"
                       key={o.label}
                       onClick={() => choose(o, lines.length)}
                       className="rounded-xl border border-hairline bg-card px-4 py-3 text-left text-[15.5px] text-slate transition-colors hover:border-plum hover:bg-blush-wash"
@@ -304,6 +310,7 @@ function Chat() {
                 </span>
               ) : (
                 <button
+                  type="button"
                   onClick={() => setBooked(true)}
                   disabled={booked}
                   className="rounded-full bg-action px-5 py-2.5 text-[14.5px] font-medium text-cream transition-colors hover:bg-action-deep disabled:opacity-40"
