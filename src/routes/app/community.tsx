@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { createFileRoute } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import { Portrait } from "@/components/thyma/portrait";
@@ -29,8 +30,15 @@ export const Route = createFileRoute("/app/community")({
 function Community() {
   const [room, setRoom] = useState<string>("all");
   const [draft, setDraft] = useState("");
-  const [posted, setPosted] = useState<string[]>([]);
-  const [liked, setLiked] = useState<string[]>([]);
+  const [posted, setPosted] = usePersistentState<string[]>("community.posted", []);
+  const [liked, setLiked] = usePersistentState<string[]>("community.liked", []);
+
+  const submit = () => {
+    const text = draft.trim();
+    if (!text) return;
+    setPosted((p) => [text, ...p]);
+    setDraft("");
+  };
 
   const active = communityRooms.find((r) => r.id === room);
   const shown = active ? communityPosts.filter((p) => p.room === active.name) : communityPosts;
@@ -48,6 +56,8 @@ function Community() {
 
       <div className="flex flex-wrap gap-2">
         <button
+          type="button"
+          aria-pressed={room === "all"}
           onClick={() => setRoom("all")}
           className={`rounded-full border px-4 py-1.5 text-[14.5px] transition-colors ${room === "all" ? "border-action bg-action text-cream" : "border-hairline bg-card text-slate hover:border-plum hover:bg-blush-wash"}`}
         >
@@ -56,6 +66,8 @@ function Community() {
         {communityRooms.map((r) => (
           <button
             key={r.id}
+            type="button"
+            aria-pressed={room === r.id}
             onClick={() => setRoom(r.id)}
             className={`rounded-full border px-4 py-1.5 text-[14.5px] transition-colors ${room === r.id ? "border-action bg-action text-cream" : "border-hairline bg-card text-slate hover:border-plum hover:bg-blush-wash"}`}
           >
@@ -90,23 +102,29 @@ function Community() {
           id="post"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          aria-describedby="post-hint"
           rows={3}
           placeholder="Ask something, or tell people what worked…"
           className="mt-3 w-full resize-none rounded-xl border border-hairline bg-paper px-4 py-3 text-[15.5px] text-slate outline-none focus:border-plum"
         />
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <button
+            type="button"
             disabled={!draft.trim()}
-            onClick={() => {
-              setPosted((p) => [draft.trim(), ...p]);
-              setDraft("");
-            }}
+            onClick={submit}
             className="rounded-full bg-action px-5 py-2 text-[14.5px] font-medium text-cream transition-colors hover:bg-action-deep disabled:opacity-40"
           >
             Post
           </button>
-          <span className="text-[14px] text-muted-foreground">
-            A moderator reads it within minutes. Nothing clinical is left to peers alone.
+          <span id="post-hint" className="text-[14px] text-muted-foreground">
+            Ctrl/⌘ + Enter to post. A moderator reads it within minutes. Nothing clinical is left to
+            peers alone.
           </span>
         </div>
       </section>

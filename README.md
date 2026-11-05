@@ -1,29 +1,33 @@
-# Welcome to your Lovable project
+# Thyma
 
-This project was built with [Lovable](https://lovable.dev).
+Coordinated care for people living with lupus and lupus nephritis: one record, one care team and one number that answers at 2 AM.
 
-## Build with Lovable
+This repo is the Thyma web prototype, built with [Lovable](https://lovable.dev). Commits pushed to `main` sync back to the Lovable editor.
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+## What's in it
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+| Route | What it shows |
+| --- | --- |
+| `/` | Marketing site: the before/after story and member voices |
+| `/providers`, `/payers` | Pitches for specialists and health plans |
+| `/console` | Care coordinator console |
+| `/app` | Maria's member portal: today's plan, labs and open items |
+| `/app/chat` | Ask Thyma: guided flare triage that ends in a disposition |
+| `/app/tracking` | Nightly check-in and symptom/lab trends |
+| `/app/care` | Care team and referral booking |
+| `/app/community` | Moderated peer rooms |
+
+Demo data lives in `src/data/thyma.ts` and `src/data/people.ts`. The member portal saves check-in answers, community posts and likes to `localStorage` (keys prefixed `thyma:`), so a demo survives a reload.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+bun install
+bun run dev
 ```
+
+`bun run lint` and `bun run build` should both pass before you push.
 
 ## Built with
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+TanStack Start, React 19, TypeScript, Tailwind CSS 4, Radix UI and Recharts.

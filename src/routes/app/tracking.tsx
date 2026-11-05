@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { createFileRoute } from "@tanstack/react-router";
 import { Activity, ClipboardList, History } from "lucide-react";
 import { PanelHeader } from "@/components/thyma/panel";
@@ -84,8 +84,8 @@ function UpcrTooltip({
 }
 
 function Tracking() {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [sent, setSent] = useState(false);
+  const [answers, setAnswers] = usePersistentState<Record<string, string>>("checkin.answers", {});
+  const [sent, setSent] = usePersistentState("checkin.sent", false);
   const done = questions.every((q) => answers[q.id]);
   const escalate = answers["urine"] === "Foamy" || answers["swell"] === "Worse than yesterday";
 
@@ -121,6 +121,8 @@ function Tracking() {
                     return (
                       <button
                         key={o}
+                        type="button"
+                        aria-pressed={on}
                         onClick={() => {
                           setAnswers((a) => ({ ...a, [q.id]: o }));
                           setSent(false);
@@ -141,6 +143,7 @@ function Tracking() {
 
             <div className="flex flex-wrap items-center gap-4 border-t border-hairline pt-5">
               <button
+                type="button"
                 disabled={!done || sent}
                 onClick={() => setSent(true)}
                 className={`rounded-full px-5 py-2.5 text-[14.5px] font-medium text-cream transition-colors ${

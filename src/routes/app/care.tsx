@@ -92,6 +92,8 @@ function Care() {
               return (
                 <button
                   key={s.id}
+                  type="button"
+                  aria-pressed={on}
                   onClick={() => {
                     setPicked(s.id);
                     setConfirmed(null);
@@ -118,6 +120,8 @@ function Care() {
 
           <div className="mt-6 flex flex-wrap items-center gap-4">
             <button
+              type="button"
+              aria-live="polite"
               disabled={!slot || !!confirmed}
               onClick={() => slot && setConfirmed(slot.id)}
               className={`rounded-full px-5 py-2.5 text-[14.5px] font-medium text-cream transition-colors ${
